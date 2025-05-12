@@ -1,15 +1,17 @@
-import LayoutPage from "@/modules/senior-citizens/layout.page";
-import { Outlet } from "react-router-dom";
+import LayoutPage from '@/modules/senior-citizens/layout.page';
+import { Outlet } from 'react-router-dom';
+import { TabProvider } from '@/context/tab-context';
 
 const SeniorCitizenLayout = () => {
-  
   return (
-    <div className="relative h-full">
-          <LayoutPage>
-              <Outlet />
-          </LayoutPage>
-    </div>
-  )
-}
+    <TabProvider>
+      <div className="relative h-full">
+        <LayoutPage>
+          <Outlet />
+        </LayoutPage>
+      </div>
+    </TabProvider>
+  );
+};
 
-export default SeniorCitizenLayout
+export default SeniorCitizenLayout;

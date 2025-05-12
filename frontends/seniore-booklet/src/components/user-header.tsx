@@ -12,6 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { useTab } from '@/context/tab-context';
+import { useLogout } from '@/modules/authentication/hooks/useLogout';
 
 const UserHeader = ({ headerName }: { headerName?: ReactNode | string }) => {
   return (
@@ -24,6 +26,29 @@ const UserHeader = ({ headerName }: { headerName?: ReactNode | string }) => {
 export function UserNav() {
   const { user } = useCurrentUser();
   const navigate = useNavigate();
+  const { setActiveTab } = useTab();
+
+  const handleProfileClick = () => {
+    setActiveTab('profile');
+    // If we're not already in the senior app, navigate there
+    if (!window.location.pathname.includes('/senior-app')) {
+      navigate('/senior-app');
+    }
+  };
+
+  const {
+    logout,
+    confirmLogout,
+    cancelLogout,
+    showConfirmDialog,
+    isLoggingOut
+  } = useLogout({
+    redirectTo: '/login',
+    onLogoutSuccess: () => {
+      // Additional cleanup specific to your app (if needed)
+      console.log('Logged out successfully');
+    }
+  });
 
   return (
     <div className="flex items-center gap-2">
@@ -56,14 +81,16 @@ export function UserNav() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => navigate('/senior-app/profile')}>
+          <DropdownMenuItem onClick={handleProfileClick}>
             Profile
           </DropdownMenuItem>
-          {/* <DropdownMenuItem onClick={() => navigate('/senior-app/settings')}>
-            Settings
-          </DropdownMenuItem> */}
+
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-red-600">Log out</DropdownMenuItem>
+          <DropdownMenuItem
+            className="text-red-600"
+            onClick={() => confirmLogout()}>
+            Log out
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
