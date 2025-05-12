@@ -1,0 +1,103 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useEffect, useState } from 'react';
+
+// Interface for debug info structure
+interface SdkDebugInfo {
+  fingerprint?: { type: string; properties: string[] } | string;
+  webSdk?: { type: string; properties: string[] } | string;
+  newWindowProperties?: { name: string; type: string; value: string }[];
+  fingerprintPostLoad?: { type: string; properties: string[] } | string;
+  webSdkPostLoad?: { type: string; properties: string[] } | string;
+}
+
+// Generic SDK interface (copied from FingerprintReader for consistency)
+
+// Sample data structure (copied from FingerprintReader for consistency)
+
+// Extend Window interface consistently with FingerprintReader
+declare global {
+  interface Window {
+    Fingerprint?: unknown;
+    WebSdk?: unknown;
+    [key: string]: unknown; // Allow dynamic property checking
+  }
+}
+
+const FingerprintSdkDebugger: React.FC = () => {
+  const [sdkInfo, setSdkInfo] = useState<SdkDebugInfo>({});
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const initialWindowProps = Object.keys(window);
+      const debugInfo: SdkDebugInfo = {};
+
+      debugInfo.fingerprint = window.Fingerprint
+        ? { type: typeof window.Fingerprint, properties: Object.keys(window.Fingerprint as object) }
+        : 'Not defined';
+
+      debugInfo.webSdk = window.WebSdk
+        ? { type: typeof window.WebSdk, properties: Object.keys(window.WebSdk as object) }
+        : 'Not defined';
+
+      const script = document.createElement('script');
+      script.src = '/fingerprint.sdk.min.js'; // Using your mock SDK
+      script.async = true;
+
+      script.onload = () => {
+        const newWindowProps = Object.keys(window).filter(
+          (key) => !initialWindowProps.includes(key)
+        );
+        debugInfo.newWindowProperties = newWindowProps.map((key) => ({
+          name: key,
+          type: typeof (window as any)[key],
+          value: String((window as any)[key]).slice(0, 50) + '...',
+        }));
+
+        debugInfo.fingerprintPostLoad = window.Fingerprint
+          ? { type: typeof window.Fingerprint, properties: Object.keys(window.Fingerprint as object) }
+          : 'Not defined';
+
+        debugInfo.webSdkPostLoad = window.WebSdk
+          ? { type: typeof window.WebSdk, properties: Object.keys(window.WebSdk as object) }
+          : 'Not defined';
+
+        setSdkInfo(debugInfo);
+        console.log('SDK Debug Info:', debugInfo);
+      };
+
+      script.onerror = () => setError('Failed to load SDK script');
+
+      document.body.appendChild(script);
+
+      return () => {
+        if (document.body.contains(script)) {
+          document.body.removeChild(script);
+        }
+      };
+    } catch (err) {
+      setError(`Error analyzing SDK: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  }, []);
+
+  return (
+    <div className="sdk-debugger">
+      <h2>Fingerprint SDK Debugger</h2>
+      {error && <div className="error-message" style={{ color: 'red' }}>{error}</div>}
+      <pre
+        style={{
+          backgroundColor: '#f5f5f5',
+          padding: '1rem',
+          borderRadius: '4px',
+          overflow: 'auto',
+          maxHeight: '500px',
+          whiteSpace: 'pre-wrap',
+        }}
+      >
+        {JSON.stringify(sdkInfo, null, 2)}
+      </pre>
+    </div>
+  );
+};
+
+export default FingerprintSdkDebugger;

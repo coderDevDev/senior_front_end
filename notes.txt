@@ -1,0 +1,203 @@
+project-root/
+│
+├── frontends/              # Frontend (React + Vite)
+│   ├── public/          # Public assets (images, icons, etc.)
+│   ├── src/             # React application source code
+│   │   ├── assets/      # Static assets (e.g., styles, images, etc.)
+│   │   ├── components/  # React components
+│   │   ├── pages/       # React pages
+│   │   ├── services/    # API services (interacting with backend)
+│   │   ├── App.jsx      # Main app component
+│   │   ├── main.jsx     # Entry point for Vite (React app)
+│   │   └── ...          # Other necessary files (hooks, utils, etc.)
+│   ├── index.html       # Main HTML file for Vite
+│   ├── .env             # Environment variables for React (optional)
+│   ├── vite.config.js   # Vite configuration file
+│   └── package.json     # React dependencies
+│
+├── backends/              # Backend (Express + Node.js)
+│   ├── config/          # Configuration files (e.g., Firebase setup)
+│   ├── controllers/     # Business logic and route controllers
+│   ├── middleware/      # Express middlewares (auth, logging, etc.)
+│   ├── models/          # Data models for Firebase Firestore or Realtime Database
+│   ├── routes/          # Express route definitions
+│   ├── app.js           # Express app setup
+│   ├── index.js         # Entry point for Express server
+│   ├── firebase.js      # Firebase Admin SDK initialization
+│   ├── .env             # Environment variables for Node.js
+│   ├── package.json     # Node.js dependencies
+│   └── ...              # Other config files (eslint, prettier, etc.)
+│
+├── .gitignore           # Files and folders to ignore in version control
+├── README.md            # Project documentation
+└── package.json         # Project-wide dependencies (optional for common scripts)
+
+|__ server/
+┣ 📂public               # Public folder for static files accessible by clients
+┃ ┗ 📂uploads            # Folder storing uploaded files like images
+┃   ┗ 📂pharmacy         # Pharmacy-related images
+┃     ┣ 📜pharmacyImg-058a00fc-f666-4836-b7d5-963144682971.png  # Example pharmacy image
+┃     ┣ 📜pharmacyImg-0e7fcf2f-3029-444f-9eb3-aa3f6eeac3a7.png  # Another pharmacy image
+┃     ┣ 📜pharmacyImg-1e6e27e4-7fac-4551-8e66-801216bb9f8a.png  # Another pharmacy image
+┃     ┣ 📜pharmacyImg-35f3758f-9f4a-4143-adf1-fd4d7a1e3549.png  # Another pharmacy image
+┃     ┣ 📜pharmacyImg-4d193c41-c473-4c20-b5f2-f5ef0bdf0e7b.png  # Another pharmacy image
+┃     ┣ 📜pharmacyImg-6e2a6a9c-c964-49d2-9c13-156f9187741b.png  # Another pharmacy image
+┃     ┣ 📜pharmacyImg-753bf324-3594-4808-b90d-a1d063715f09.png  # Another pharmacy image
+┃     ┣ 📜pharmacyImg-a90b4ae4-be58-4a2c-8270-62f24d1f43ec.png  # Another pharmacy image
+┃     ┣ 📜pharmacyImg-a99b8285-0e6c-457d-b5e1-0d9f9b43fa5c.png  # Another pharmacy image
+┃     ┣ 📜pharmacyImg-b3eec5fa-5ccd-435e-8522-4e4c9e97e868.png  # Another pharmacy image
+┃     ┣ 📜pharmacyImg-b907567a-ca6b-4f0a-9f49-835d383e4ac2.png  # Another pharmacy image
+┃     ┣ 📜pharmacyImg-d233a1ab-a859-404f-be16-e07aec024fe9.png  # Another pharmacy image
+┃     ┣ 📜pharmacyImg-d4f72527-9370-458e-be68-522c8670328e.png  # Another pharmacy image
+┃     ┗ 📜pharmacyImg-de313fad-79fa-4885-8688-acc3fa36e08e.png  # Another pharmacy image
+┣ 📂service_key          # Folder containing Firebase service credentials
+┃ ┗ 📜senior-citizen-booklet-firebase-adminsdk-1i46r-ea8c4d78f3.json  # Firebase admin SDK JSON credentials
+┣ 📂src                  # Main source code for the application
+┃ ┣ 📂app                # Folder for different backend modules (services)
+┃ ┃ ┣ 📂discounts        # Logic related to discounts
+┃ ┃ ┃ ┣ 📜discount.interface.ts  # TypeScript interface for discount data
+┃ ┃ ┃ ┗ 📜discount.service.ts    # Service logic for discounts
+┃ ┃ ┣ 📂feedbacks        # Logic for feedback management
+┃ ┃ ┃ ┗ 📜feedback.interface.ts  # Interface for feedback data
+┃ ┃ ┣ 📂medicals         # Logic for managing medical records
+┃ ┃ ┃ ┣ 📜medical-record.interface.ts  # Interface for medical record data
+┃ ┃ ┃ ┗ 📜medical-record.service.ts    # Service for medical records
+┃ ┃ ┣ 📂medicines        # Logic for medicine-related functionality
+┃ ┃ ┃ ┣ 📜index.ts       # Main entry for the medicines module
+┃ ┃ ┃ ┣ 📜medicine.controllers.ts  # Controller handling medicine requests
+┃ ┃ ┃ ┣ 📜medicine.interface.ts    # Interface for medicine data
+┃ ┃ ┃ ┣ 📜medicine.route.ts        # API routes for medicine endpoints
+┃ ┃ ┃ ┗ 📜medicine.service.ts      # Business logic for medicines
+┃ ┃ ┣ 📂pharmacy         # Logic for pharmacy-related operations
+┃ ┃ ┃ ┣ 📜index.ts       # Main entry for pharmacy module
+┃ ┃ ┃ ┣ 📜pharmacy.controller.ts   # Controller managing pharmacy requests
+┃ ┃ ┃ ┣ 📜pharmacy.interface.ts    # Interface for pharmacy data
+┃ ┃ ┃ ┣ 📜pharmacy.route.ts        # API routes for pharmacy endpoints
+┃ ┃ ┃ ┗ 📜pharmacy.service.ts      # Service handling pharmacy business logic
+┃ ┃ ┣ 📂sb-users         # Logic for managing Supabase users
+┃ ┃ ┃ ┣ 📜index.ts       # Main entry for sb-users module
+┃ ┃ ┃ ┣ 📜user.controller.ts       # Controller managing user requests
+┃ ┃ ┃ ┣ 📜user.interface.ts        # Interface for user data
+┃ ┃ ┃ ┣ 📜user.route.ts            # API routes for user endpoints
+┃ ┃ ┃ ┗ 📜user.service.ts          # User service logic
+┃ ┃ ┣ 📂senior-citizen   # Logic for senior citizens-related operations
+┃ ┃ ┃ ┣ 📜index.ts       # Main entry for senior citizen module
+┃ ┃ ┃ ┣ 📜senior-citizen.service.ts     # Logic for managing senior citizen data
+┃ ┃ ┃ ┣ 📜senior-citizen.controller.ts  # Controller for senior citizen-related requests
+┃ ┃ ┃ ┣ 📜senior-citizen.interface.ts   # Interface for senior citizen data
+┃ ┃ ┃ ┗ 📜senior-citizen.route.ts  # API routes for senior citizen endpoints
+┃ ┃ ┣ 📂settings         # Application settings-related logic
+┃ ┃ ┃ ┗ 📂dosage-form    # Logic related to dosage forms
+┃ ┃ ┃   ┗ 📜dosage-form.interface.ts    # Interface for dosage form data
+┃ ┃ ┣ 📂transactions     # Logic for transaction management
+┃ ┃ ┃ ┣ 📜index.ts       # Main entry for transactions module
+┃ ┃ ┃ ┣ 📜transaction-item.interface.ts      # Interface for transaction item data
+┃ ┃ ┃ ┣ 📜transaction-item.service.ts        # Transaction item service
+┃ ┃ ┃ ┣ 📜transaction.interface.ts           # Interface for transaction data
+┃ ┃ ┃ ┗ 📜transaction.service.ts             # Transaction service logic
+┃ ┃ ┣ 📂users            # Logic for user management
+┃ ┃ ┃ ┣ 📜index.ts       # Main entry for user module
+┃ ┃ ┃ ┣ 📜user.controller.ts                 # Controller for user-related requests
+┃ ┃ ┃ ┣ 📜user.interface.ts                  # Interface for user data
+┃ ┃ ┃ ┣ 📜user.route.ts                      # API routes for user-related endpoints
+┃ ┃ ┃ ┗ 📜user.service.ts                    # User service logic
+┃ ┃ ┗ 📜app.route.ts     # Main entry for defining application routes
+┃ ┣ 📂common             # Common utility files
+┃ ┃ ┗ 📂middlewares      # Folder for middleware logic
+┃ ┃   ┣ 📂errors         # Error handling logic
+┃ ┃   ┃ ┣ 📜errorHandler.errors.ts           # Main error handler
+┃ ┃   ┃ ┣ 📜index.ts     # Main entry for error handling
+┃ ┃   ┃ ┗ 📜not-found.errors.ts              # "Not found" error handling
+┃ ┃   ┣ 📂file-upload    # File upload logic (e.g., using `multer`)
+┃ ┃   ┃ ┣ 📜index.ts     # Main entry for file upload middleware
+┃ ┃   ┃ ┣ 📜multer.ts    # Middleware for handling file uploads
+┃ ┃   ┃ ┗ 📜storage.ts   # Logic for storing uploaded files
+┃ ┃   ┣ 📂sort-filter-pagination        # Features for sorting, filtering, and pagination
+┃ ┃   ┃ ┣ 📜index.ts     # Main entry for sorting/filtering
+┃ ┃   ┃ ┣ 📜medicine.features.ts        # Sorting and filtering logic for medicines
+┃ ┃   ┃ ┣ 📜pharmacy.features.ts        # Sorting and filtering logic for pharmacies
+┃ ┃   ┃ ┗ 📜sb-users.features.ts        # Sorting and filtering for users
+┃ ┃   ┣ 📂validation     # Validation logic for various models
+┃ ┃   ┃ ┣ 📂medicine     # Medicine validation
+┃ ┃   ┃ ┃ ┣ 📜index.ts   # Main entry for medicine validation
+┃ ┃   ┃ ┃ ┣ 📜medicine.schema.ts        # Medicine validation schema
+┃ ┃   ┃ ┃ ┗ 📜medicine.validation.ts    # Medicine validation logic
+┃ ┃   ┃ ┣ 📂pharmacy     # Pharmacy validation
+┃ ┃   ┃ ┃ ┣ 📜index.ts   # Main entry for pharmacy validation
+┃ ┃   ┃ ┃ ┣ 📜pharmacy.schema.ts        # Pharmacy validation schema
+┃ ┃   ┃ ┃ ┗ 📜pharmacy.validation.ts    # Pharmacy validation logic
+┃ ┃   ┃ ┣ 📂senior-citizen              # Senior citizen validation
+┃ ┃   ┃ ┃ ┣ 📜index.ts   # Main entry for senior citizen validation
+┃ ┃   ┃ ┃ ┣ 📜senior-citizen.validation.ts     # Senior citizen validation logic
+┃ ┃   ┃ ┃ ┗ 📜senior.schema.ts                 # Senior citizen schema
+┃ ┃   ┃ ┣ 📂students     # Student validation
+┃ ┃   ┃ ┃ ┣ 📜index.ts   # Main entry for student validation
+┃ ┃   ┃ ┃ ┣ 📜user.schema.ts                   # User validation schema
+┃ ┃   ┃ ┃ ┗ 📜user.validation.ts               # User validation logic
+┃ ┃   ┃ ┗ 📜index.ts     # Main entry for validation logic
+┃ ┃   ┗ 📜index.ts       # Common utilities index file
+┃ ┣ 📂config             # Configuration files for different services
+┃ ┃ ┣ 📜firebase.config.ts                     # Firebase configuration
+┃ ┃ ┣ 📜load-envs.config.ts                    # Loads environment variables
+┃ ┃ ┣ 📜supabase.config.ts                     # Supabase configuration
+┃ ┃ ┗ 📜index.ts         # Main entry for configuration files
+┃ ┣ 📂constants          # Constants for use throughout the app
+┃ ┃ ┗ 📜http-status.enum.ts                    # HTTP status code enum
+┃ ┣ 📂interface          # TypeScript interfaces
+┃ ┃ ┣ 📜custome-type.interface.ts              # Custom type interfaces
+┃ ┃ ┗ 📜response.interface.ts                  # API response interface
+┃ ┣ 📂utils              # Utility functions
+┃ ┃ ┣ 📜catcher.utils.ts                       # Error-catching utility
+┃ ┃ ┣ 📜ensure-directory.utils.ts              # Ensures directory exists utility
+┃ ┃ ┣ 📜file.utils.ts    # File utilities
+┃ ┃ ┣ 📜random-avatar.utils.ts                 # Random avatar generator
+┃ ┃ ┣ 📜random-username.utils.ts               # Random username generator
+┃ ┃ ┣ 📜response.utils.ts                      # Response utilities
+┃ ┃ ┗ 📜validator.utils.ts                     # Validation utilities
+┣ 📜app.ts               # Main entry point for the app (Express setup)
+┣ 📜server.ts            # Main server file for starting the app
+┣ 📜.env.development     # Environment variables for development
+┣ 📜.env.template        # Template for .env variables
+┣ 📜nodemon.json         # Configuration for `nodemon`
+┣ 📜package.json         # Project metadata, dependencies, and scripts
+┣ 📜README.md            # Project documentation
+┣ 📜tsconfig.json        # TypeScript configuration file
+
+Explanation of Key Folders and Files:
+frontends/: This contains your React application.
+
+public/: Contains static assets like index.html, images, etc.
+src/: Your main React source files. It includes components, pages, and services (for API calls).
+.env: Environment variables for your React app.
+backends/: This is your Express and Node.js backend.
+
+config/: Stores configuration files like Firebase SDK setup or database configs.
+controllers/: Contains the logic for handling API routes (e.g., authentication, CRUD operations).
+middleware/: Contains any custom middleware for your Express app (e.g., JWT authentication).
+models/: Contains database schemas or models if needed for Firebase Firestore.
+routes/: Defines the API routes for the backend.
+firebase.js: Firebase Admin SDK setup for interacting with Firestore and other Firebase services.
+firebase/: Contains Firebase-specific configuration.
+
+functions/: Firebase Cloud Functions if you plan to use serverless functions alongside your Node server.
+firestore.rules: Firestore security rules.
+storage.rules: Firebase Storage security rules.
+firebase.json: Firebase project configurations (deployment, hosting, etc.).
+.gitignore: Ensures sensitive files like .env and node_modules are not pushed to version control.
+
+package.json: Lists the dependencies for both the frontend and backend. You might have separate package.json files for the React app and Express backend.
+
+Steps to Get Started:
+Initialize Firebase: Set up your Firebase project and initialize Firebase in the backends/firebase.js file.
+
+React Setup:
+
+Inside the frontends/ folder, run npm create vite@latest . to initialize the React+Vite app.
+Setup the necessary routes and components in src/.
+Express Setup:
+
+Inside the backends/ folder, run npm init -y to initialize the Node.js backend.
+Install required dependencies like express, firebase-admin, etc.
+Connect Firebase Admin SDK: Use Firebase Admin SDK in your server/firebase.js file for backend interactions with Firebase services (Firestore, Auth).
+
+This structure gives you flexibility to scale the project and keep your code organized!

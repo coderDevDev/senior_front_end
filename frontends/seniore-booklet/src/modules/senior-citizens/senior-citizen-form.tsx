@@ -1,0 +1,203 @@
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { UseFormReturn } from 'react-hook-form';
+import { SeniorCitizenFormValues } from './senior-citizen-content-form';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+
+interface SeniorCitizenFormProps {
+  form: UseFormReturn<SeniorCitizenFormValues>;
+}
+
+const SeniorCitizenForm = ({ form }: SeniorCitizenFormProps) => {
+  const location = useLocation();
+  const {
+    formState: { errors }
+  } = form;
+
+  // Pre-populate form when editing
+  useEffect(() => {
+    if (location.state?.seniorData) {
+      const seniorData = location.state.seniorData;
+
+      // Reset form with senior data
+      form.reset({
+        email: seniorData.email,
+        firstName: seniorData.firstName,
+        lastName: seniorData.lastName,
+        middleName: seniorData.middleName || '',
+        healthStatus: seniorData.healthStatus,
+        age: seniorData.age,
+        contactNumber: seniorData.contactNumber,
+        // Don't set password when editing
+        password: ''
+      });
+    }
+  }, [location.state, form]);
+
+  console.log(errors);
+
+  return (
+    <Form {...form}>
+      <div className="space-y-6">
+        {/* Personal Information Section */}
+        <div>
+          <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-gray-100">
+            Personal Information
+          </h3>
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem className="col-span-2">
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="abc@xyz.com"
+                      {...field}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="middleName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Middle Name (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="M." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Health Information Section */}
+        <div>
+          <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-gray-100">
+            Health Information
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="healthStatus"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Health Status</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select health status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="excellent">Excellent</SelectItem>
+                      <SelectItem value="good">Good</SelectItem>
+                      <SelectItem value="fair">Fair</SelectItem>
+                      <SelectItem value="poor">Poor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="age"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Age</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="60 years old"
+                      type="number"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Contact Information Section */}
+        <div>
+          <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-gray-100">
+            Contact Information
+          </h3>
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="contactNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Emergency Contact</FormLabel>
+                  <FormControl>
+                    <Input placeholder="+1 (555) 000-0000" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+      </div>
+    </Form>
+  );
+};
+
+export default SeniorCitizenForm;
