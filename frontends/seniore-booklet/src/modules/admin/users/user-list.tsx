@@ -1,39 +1,69 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { MoreHorizontalIcon, PlusCircleIcon, SearchIcon } from "lucide-react"
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table';
+import { MoreHorizontalIcon, PlusCircleIcon, SearchIcon } from 'lucide-react';
 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import IUser from "./user.interface"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import IUser from './user.interface';
 
-import { Spinner } from "@/components/spinner"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
-import { useEffect, useMemo, useState } from "react"
-import { useArchiveUser, useUnarchiveUser } from "./hooks/useArchiveUser"
-import useReadUsers from "./hooks/useReadUsers"
-import UserContentForm from "./user-content-form"
+import { Spinner } from '@/components/spinner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { useEffect, useMemo, useState } from 'react';
+import { useArchiveUser, useUnarchiveUser } from './hooks/useArchiveUser';
+import useReadUsers from './hooks/useReadUsers';
+import UserContentForm from './user-content-form';
 
 type RoleColor = {
   [key in 'admin' | 'staff' | 'visitor']: string;
 };
 
 const roleColors: RoleColor = {
-  admin: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  staff: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  visitor: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  admin: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+  staff: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  visitor: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
 };
 
 const StatusBadge = ({ status }: { status?: string }) => {
   const statusMap: Record<string, string> = {
-    active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-    archived: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
-    suspended: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+    active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    archived: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+    suspended:
+      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
   };
 
-  const displayStatus = status || "active";
+  const displayStatus = status || 'active';
   const color = statusMap[displayStatus] || statusMap.active;
 
   return (
@@ -44,9 +74,10 @@ const StatusBadge = ({ status }: { status?: string }) => {
 };
 
 const RoleBadge = ({ role }: { role: string }) => {
-  const color = role.toLowerCase() in roleColors
-    ? roleColors[role.toLowerCase() as keyof RoleColor]
-    : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+  const color =
+    role.toLowerCase() in roleColors
+      ? roleColors[role.toLowerCase() as keyof RoleColor]
+      : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
 
   return (
     <Badge className={`${color} capitalize`} variant="outline">
@@ -58,31 +89,36 @@ const RoleBadge = ({ role }: { role: string }) => {
 const UsersList = () => {
   const { data: usersData, isLoading, error, refetch } = useReadUsers();
   const { archiveUserHandler, isPending: isStatusUpdating } = useArchiveUser();
-  const { UnarchiveUserHandler, isPending: isUnarchiveUpdating } = useUnarchiveUser();
+  const { UnarchiveUserHandler, isPending: isUnarchiveUpdating } =
+    useUnarchiveUser();
   const [formOpen, setFormOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<IUser | Record<string,any>>({});
+  const [editingUser, setEditingUser] = useState<IUser | Record<string, any>>(
+    {}
+  );
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [userToUpdate, setUserToUpdate] = useState<IUser | null>(null);
   const [isArchiving, setIsArchiving] = useState(true); // true for archive, false for unarchive
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'archived'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<
+    'all' | 'active' | 'archived'
+  >('all');
 
   const handleAddUser = () => {
     setEditingUser({});
     setFormOpen(true);
   };
- 
+
   const handleEditUser = (user: IUser) => {
     setEditingUser(user);
     setFormOpen(true);
   };
 
   const handleFormClose = (open: boolean) => {
-    console.log("handleFormClose called", { formOpen, editingUser, open });
+    console.log('handleFormClose called', { formOpen, editingUser, open });
     setFormOpen(open);
     setEditingUser({});
     // Force reset pointer-events on body
-    document.body.style.pointerEvents = "auto";
+    document.body.style.pointerEvents = 'auto';
     // Refetch users after form closes
     refetch();
   };
@@ -95,21 +131,21 @@ const UsersList = () => {
 
   const confirmStatusUpdate = async () => {
     if (!userToUpdate) return;
-    
+
     let success;
     if (isArchiving) {
       success = await archiveUserHandler(userToUpdate);
     } else {
       success = await UnarchiveUserHandler(userToUpdate);
     }
-    
+
     if (success) {
       refetch(); // Refresh the user list after successful status update
     }
-    
+
     // Reset pointer-events on body element to ensure UI remains clickable
-    document.body.style.pointerEvents = "auto";
-    
+    document.body.style.pointerEvents = 'auto';
+
     // Close dialog and reset state
     setStatusDialogOpen(false);
     setUserToUpdate(null);
@@ -117,21 +153,26 @@ const UsersList = () => {
 
   const filteredUsers = useMemo(() => {
     const users = usersData?.data?.students || [];
-    
+
     return users.filter((user: IUser) => {
       // Apply status filter
       if (statusFilter !== 'all') {
-        if (statusFilter === 'active' && user.status === 'archived') return false;
-        if (statusFilter === 'archived' && (!user.status || user.status === 'active')) return false;
+        if (statusFilter === 'active' && user.status === 'archived')
+          return false;
+        if (
+          statusFilter === 'archived' &&
+          (!user.status || user.status === 'active')
+        )
+          return false;
       }
-      
+
       // Apply search filter if there's a search term
       if (!searchTerm) return true;
-      
+
       const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
       const email = user.email.toLowerCase();
       const term = searchTerm.toLowerCase();
-      
+
       return fullName.includes(term) || email.includes(term);
     });
   }, [usersData, searchTerm, statusFilter]);
@@ -141,23 +182,28 @@ const UsersList = () => {
     const users = usersData?.data?.students || [];
     return {
       all: users.length,
-      active: users.filter((user: IUser) => !user.status || user.status === 'active').length,
+      active: users.filter(
+        (user: IUser) => !user.status || user.status === 'active'
+      ).length,
       archived: users.filter((user: IUser) => user.status === 'archived').length
     };
   }, [usersData]);
 
   useEffect(() => {
     // Reset pointer-events whenever modal states change
-    console.log("Modal state changed, resetting pointer-events");
-    document.body.style.pointerEvents = "auto";
+    console.log('Modal state changed, resetting pointer-events');
+    document.body.style.pointerEvents = 'auto';
   }, [formOpen, statusDialogOpen]);
 
-  const pagination = useMemo(() => ({
-    currentPage: usersData?.data?.currentPage?.page || 1,
-    totalPages: usersData?.data?.totalPages || 1,
-    totalDocs: usersData?.data?.totalDocs || 0,
-    limit: usersData?.data?.currentPage?.limit || 20
-  }), [usersData]);
+  const pagination = useMemo(
+    () => ({
+      currentPage: usersData?.data?.currentPage?.page || 1,
+      totalPages: usersData?.data?.totalPages || 1,
+      totalDocs: usersData?.data?.totalDocs || 0,
+      limit: usersData?.data?.currentPage?.limit || 20
+    }),
+    [usersData]
+  );
 
   const renderTableContent = () => {
     if (isLoading) {
@@ -186,24 +232,33 @@ const UsersList = () => {
         <TableRow>
           <TableCell colSpan={6} className="h-[400px] text-center">
             No users found matching your criteria.
-            {searchTerm && <div className="mt-2">Try changing your search term.</div>}
-            {statusFilter !== 'all' && <div className="mt-2">Try changing the status filter.</div>}
+            {searchTerm && (
+              <div className="mt-2">Try changing your search term.</div>
+            )}
+            {statusFilter !== 'all' && (
+              <div className="mt-2">Try changing the status filter.</div>
+            )}
           </TableCell>
         </TableRow>
       );
     }
 
     return filteredUsers.map((user: IUser) => (
-      <TableRow key={user.id} className={user.status === 'archived' ? 'opacity-60' : ''}>
+      <TableRow
+        key={user.id}
+        className={user.status === 'archived' ? 'opacity-60' : ''}>
         <TableCell className="font-light">
-          <span className="text-md font-bold">{user.firstName} {user.lastName}</span> <br />
+          <span className="text-md font-bold">
+            {user.firstName} {user.lastName}
+          </span>{' '}
+          <br />
           <span className="text-xs">{user.email}</span>
         </TableCell>
         <TableCell>
           <StatusBadge status={user.status} />
         </TableCell>
         <TableCell className="hidden md:table-cell">
-          <RoleBadge role={user.userRole || "admin"} />
+          <RoleBadge role={user.userRole || 'admin'} />
         </TableCell>
         <TableCell>
           <DropdownMenu>
@@ -211,32 +266,28 @@ const UsersList = () => {
               <Button
                 aria-label={`Actions for ${user.email}`}
                 size="icon"
-                variant="ghost"
-              >
+                variant="ghost">
                 <MoreHorizontalIcon className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => handleEditUser(user)}
-                disabled={user.status === 'archived'}
-              >
+                disabled={user.status === 'archived'}>
                 Edit
               </DropdownMenuItem>
-              
+
               {user.status === 'archived' ? (
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => handleStatusClick(user, false)}
-                  className="text-green-600 focus:text-green-600"
-                >
+                  className="text-green-600 focus:text-green-600">
                   Unarchive
                 </DropdownMenuItem>
               ) : (
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => handleStatusClick(user, true)}
-                  className="text-red-600 focus:text-red-600"
-                >
+                  className="text-red-600 focus:text-red-600">
                   Archive
                 </DropdownMenuItem>
               )}
@@ -252,31 +303,30 @@ const UsersList = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 gap-4">
         <div className="flex flex-wrap gap-2">
           <Button
-            variant={statusFilter === 'all' ? "default" : "outline"}
+            variant={statusFilter === 'all' ? 'default' : 'outline'}
             className={`h-8 ${statusFilter === 'all' ? 'bg-[#0B0400]' : ''}`}
             onClick={() => setStatusFilter('all')}
-            size="sm"
-          >
+            size="sm">
             All ({userCounts.all})
           </Button>
           <Button
-            variant={statusFilter === 'active' ? "default" : "outline"}
+            variant={statusFilter === 'active' ? 'default' : 'outline'}
             className={`h-8 ${statusFilter === 'active' ? 'bg-green-600' : ''}`}
             onClick={() => setStatusFilter('active')}
-            size="sm"
-          >
+            size="sm">
             Active ({userCounts.active})
           </Button>
           <Button
-            variant={statusFilter === 'archived' ? "default" : "outline"}
-            className={`h-8 ${statusFilter === 'archived' ? 'bg-gray-600' : ''}`}
+            variant={statusFilter === 'archived' ? 'default' : 'outline'}
+            className={`h-8 ${
+              statusFilter === 'archived' ? 'bg-gray-600' : ''
+            }`}
             onClick={() => setStatusFilter('archived')}
-            size="sm"
-          >
+            size="sm">
             Archived ({userCounts.archived})
           </Button>
         </div>
-        
+
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <div className="relative flex-1 w-full">
             <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -285,17 +335,24 @@ const UsersList = () => {
               placeholder="Search user..."
               type="search"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
 
-          <Button className="h-8 gap-1 bg-[#0B0400]" size="sm" variant="gooeyLeft" onClick={handleAddUser}>
+          <Button
+            className="h-8 gap-1 bg-[#0B0400] text-white"
+            size="sm"
+            variant="gooeyLeft"
+            onClick={handleAddUser}>
             <PlusCircleIcon className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add User</span>
+
+            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+              Add User
+            </span>
           </Button>
         </div>
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle className="text-[#492309]">Users</CardTitle>
@@ -314,30 +371,40 @@ const UsersList = () => {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="hidden md:table-cell">
-                  Role
-                </TableHead>
+                <TableHead className="hidden md:table-cell">Role</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {renderTableContent()}
-            </TableBody>
+            <TableBody>{renderTableContent()}</TableBody>
           </Table>
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
           <div className="text-sm text-muted-foreground mb-2 sm:mb-0">
-            Showing <strong>{filteredUsers.length > 0 ? Math.min(filteredUsers.length, (pagination.currentPage - 1) * pagination.limit + 1) : 0}-{Math.min(pagination.currentPage * pagination.limit, filteredUsers.length)}</strong> of <strong>{filteredUsers.length}</strong> Users
+            Showing{' '}
+            <strong>
+              {filteredUsers.length > 0
+                ? Math.min(
+                    filteredUsers.length,
+                    (pagination.currentPage - 1) * pagination.limit + 1
+                  )
+                : 0}
+              -
+              {Math.min(
+                pagination.currentPage * pagination.limit,
+                filteredUsers.length
+              )}
+            </strong>{' '}
+            of <strong>{filteredUsers.length}</strong> Users
           </div>
           <div className="text-sm text-muted-foreground">
-            Filter: <strong className="capitalize">{statusFilter}</strong> | 
+            Filter: <strong className="capitalize">{statusFilter}</strong> |
             Total Users: <strong>{usersData?.data?.totalDocs || 0}</strong>
           </div>
         </CardFooter>
       </Card>
-      
+
       {/* Edit User Form Dialog */}
       {formOpen && (
         <UserContentForm
@@ -346,58 +413,67 @@ const UsersList = () => {
           onOpenChange={handleFormClose}
         />
       )}
-      
+
       {/* Status Update Confirmation Dialog */}
-      <AlertDialog 
-        open={statusDialogOpen} 
+      <AlertDialog
+        open={statusDialogOpen}
         onOpenChange={(open: boolean | ((prevState: boolean) => boolean)) => {
           setStatusDialogOpen(open);
           // Force reset pointer-events when dialog closes
           if (!open) {
-            document.body.style.pointerEvents = "auto";
+            document.body.style.pointerEvents = 'auto';
           }
-        }}
-      >
+        }}>
         <AlertDialogContent className="z-50">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               {isArchiving ? (
-                <>This will archive the user "{userToUpdate?.firstName} {userToUpdate?.lastName}". 
-                  Archived users will no longer have access to the system but their data will be preserved.</>
+                <>
+                  This will archive the user "{userToUpdate?.firstName}{' '}
+                  {userToUpdate?.lastName}". Archived users will no longer have
+                  access to the system but their data will be preserved.
+                </>
               ) : (
-                <>This will unarchive the user "{userToUpdate?.firstName} {userToUpdate?.lastName}". 
-                  The user will regain access to the system.</>
+                <>
+                  This will unarchive the user "{userToUpdate?.firstName}{' '}
+                  {userToUpdate?.lastName}". The user will regain access to the
+                  system.
+                </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel 
+            <AlertDialogCancel
               disabled={isStatusUpdating || isUnarchiveUpdating}
               onClick={() => {
-                document.body.style.pointerEvents = "auto";
+                document.body.style.pointerEvents = 'auto';
                 setStatusDialogOpen(false);
                 setUserToUpdate(null);
-              }}
-            >
+              }}>
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={(e: { preventDefault: () => void }) => {
                 e.preventDefault(); // Prevent default to handle it ourselves
                 confirmStatusUpdate();
-              }} 
+              }}
               disabled={isStatusUpdating || isUnarchiveUpdating}
-              className={isArchiving ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}
-            >
-              {isStatusUpdating || isUnarchiveUpdating ? <Spinner className="h-4 w-4 mr-2" /> : null}
-              {isArchiving ? "Archive User" : "Unarchive User"}
+              className={
+                isArchiving
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-green-600 hover:bg-green-700'
+              }>
+              {isStatusUpdating || isUnarchiveUpdating ? (
+                <Spinner className="h-4 w-4 mr-2" />
+              ) : null}
+              {isArchiving ? 'Archive User' : 'Unarchive User'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
-}
+  );
+};
 
 export default UsersList;

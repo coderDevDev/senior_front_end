@@ -32,7 +32,7 @@ import { Spinner } from '@/components/spinner';
 import { Badge } from '@/components/ui/badge';
 import { useMemo, useState } from 'react';
 import useReadSeniorCitizens from './profiles/hooks/useReadSeniorCitizen';
-import { SeniorCitizenFormValues } from './senior-citizen-content-form';
+import { type SeniorCitizenFormValues } from './senior-citizen-content-form.ts';
 import { useArchiveSenior, useUnarchiveSenior } from './hooks/useArchiveSenior';
 import {
   AlertDialog,
@@ -55,6 +55,7 @@ import { useQuery } from '@tanstack/react-query';
 import MedicalHistoryForm from './medical-history/medical-history-form';
 import { cn } from '@/lib/utils';
 import supabase from '@/shared/supabase';
+import SeniorCitizenContentForm from './senior-citizen-content-form.tsx';
 
 type HealthStatusColor = {
   [key in 'excellent' | 'good' | 'fair' | 'poor']: string;
