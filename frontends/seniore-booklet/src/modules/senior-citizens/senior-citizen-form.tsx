@@ -18,12 +18,17 @@ import { UseFormReturn } from 'react-hook-form';
 import { SeniorCitizenFormValues } from './senior-citizen-content-form';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { Label } from '@/components/ui/label';
 
 interface SeniorCitizenFormProps {
-  form: UseFormReturn<SeniorCitizenFormValues>;
+  form: UseFormReturn<any>;
+  isAdminForm?: boolean;
 }
 
-const SeniorCitizenForm = ({ form }: SeniorCitizenFormProps) => {
+const SeniorCitizenForm = ({
+  form,
+  isAdminForm = false
+}: SeniorCitizenFormProps) => {
   const location = useLocation();
   const {
     formState: { errors }
@@ -54,32 +59,46 @@ const SeniorCitizenForm = ({ form }: SeniorCitizenFormProps) => {
   return (
     <Form {...form}>
       <div className="space-y-6">
-        {/* Personal Information Section */}
-        <div>
-          <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-gray-100">
-            Personal Information
-          </h3>
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="abc@xyz.com"
-                      {...field}
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Email field - only editable for admin */}
+          <div className="space-y-2">
+            <Label htmlFor="email">Email Address</Label>
+            <Input
+              {...form.register('email')}
+              type="email"
+              placeholder="Enter email"
+              disabled={!isAdminForm}
             />
+            {form.formState.errors.email && (
+              <span className="text-red-500 text-sm">
+                {form.formState.errors.email.message}
+              </span>
+            )}
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Password field - only for admin */}
+          {isAdminForm && (
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                {...form.register('password')}
+                type="password"
+                placeholder="Enter password"
+              />
+              {form.formState.errors.password && (
+                <span className="text-red-500 text-sm">
+                  {form.formState.errors.password.message}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Personal Information Section */}
+          <div>
+            <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-gray-100">
+              Personal Information
+            </h3>
+            <div className="space-y-4">
               <FormField
                 control={form.control}
                 name="firstName"
@@ -121,78 +140,78 @@ const SeniorCitizenForm = ({ form }: SeniorCitizenFormProps) => {
               />
             </div>
           </div>
-        </div>
 
-        {/* Health Information Section */}
-        <div>
-          <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-gray-100">
-            Health Information
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="healthStatus"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Health Status</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}>
+          {/* Health Information Section */}
+          <div>
+            <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-gray-100">
+              Health Information
+            </h3>
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="healthStatus"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Health Status</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select health status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="excellent">Excellent</SelectItem>
+                        <SelectItem value="good">Good</SelectItem>
+                        <SelectItem value="fair">Fair</SelectItem>
+                        <SelectItem value="poor">Poor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="age"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Age</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select health status" />
-                      </SelectTrigger>
+                      <Input
+                        placeholder="60 years old"
+                        type="number"
+                        {...field}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="excellent">Excellent</SelectItem>
-                      <SelectItem value="good">Good</SelectItem>
-                      <SelectItem value="fair">Fair</SelectItem>
-                      <SelectItem value="poor">Poor</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="age"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Age</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="60 years old"
-                      type="number"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Contact Information Section */}
-        <div>
-          <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-gray-100">
-            Contact Information
-          </h3>
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="contactNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Emergency Contact</FormLabel>
-                  <FormControl>
-                    <Input placeholder="+1 (555) 000-0000" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          {/* Contact Information Section */}
+          <div>
+            <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-gray-100">
+              Contact Information
+            </h3>
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="contactNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Emergency Contact</FormLabel>
+                    <FormControl>
+                      <Input placeholder="+1 (555) 000-0000" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
         </div>
       </div>

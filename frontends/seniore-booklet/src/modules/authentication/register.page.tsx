@@ -18,6 +18,15 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import VerificationStepper from '../../components/verification-stepper';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog';
+import { Mail, Phone } from 'lucide-react';
 
 import supabase from '@/shared/supabase';
 
@@ -41,6 +50,7 @@ const RegisterPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showHelpDialog, setShowHelpDialog] = useState(false);
 
   const {
     register,
@@ -83,57 +93,61 @@ const RegisterPage = () => {
 
       if (authError) throw authError;
 
-      if (authData.user) {
-        // Format birth date as timestamptz
-        const birthDate = formatBirthDate(
-          data.birthYear,
-          data.birthMonth,
-          data.birthDay
-        );
+      // Format birth date
+      const birthDate = formatBirthDate(
+        data.birthYear,
+        data.birthMonth,
+        data.birthDay
+      );
 
-        // Insert user details into sb_users table
-        const { error: profileError } = await supabase.from('sb_users').insert({
-          user_uid: authData.user.id,
+      // Insert into sb_users table
+      const { error: userError } = await supabase.from('sb_users').insert({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        middleName: data.middleInitial,
+        email: data.email,
+        password: data.password, // Note: In production, hash this password
+        userRole: 'senior_citizen',
+        user_uid: authData.user?.id,
+        address: data.address,
+        birthDate: birthDate,
+        birthPlace: data.birthPlace,
+        contactNo: data.contactNo,
+        email_verified: false,
+        created_at: new Date().toISOString()
+      });
+
+      if (userError) throw userError;
+
+      // Insert into senior_citizens table
+      const { error: seniorError } = await supabase
+        .from('senior_citizens')
+        .insert({
           firstName: data.firstName,
           lastName: data.lastName,
           middleName: data.middleInitial,
           email: data.email,
-          address: data.address,
-          birthDate,
-          birthPlace: data.birthPlace,
-          contactNo: data.contactNo,
-          status: 'active',
+          password: data.password, // Note: In production, hash this password
           userRole: 'senior_citizen',
-          email_verified: false,
-          isVerified: false
+          user_uid: authData.user?.id,
+          address: data.address,
+          birthdate: birthDate,
+          birthPlace: data.birthPlace,
+          contactNumber: data.contactNo,
+          isEmailVerified: false,
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          age: new Date().getFullYear() - new Date(birthDate).getFullYear(),
+          healthStatus: 'good' // Default value
         });
 
-        if (profileError) {
-          // If profile creation fails, delete the auth user
-          await supabase.auth.admin.deleteUser(authData.user.id);
-          throw profileError;
-        }
+      if (seniorError) throw seniorError;
 
-        // Update user metadata with additional info
-        const { error: updateError } = await supabase.auth.updateUser({
-          data: {
-            firstName: data.firstName,
-            lastName: data.lastName,
-            userRole: 'senior_citizen',
-            id: authData.user.id
-          }
-        });
-
-        if (updateError) throw updateError;
-
-        toast.success('Registration successful! Please verify your email.');
-        navigate('/verify');
-      }
-    } catch (error) {
+      toast.success('Registration successful! Please verify your email.');
+      navigate('/login');
+    } catch (error: any) {
       console.error('Registration error:', error);
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to register user'
-      );
+      toast.error(error.message || 'Registration failed');
     } finally {
       setIsSubmitting(false);
     }
@@ -596,12 +610,54 @@ const RegisterPage = () => {
                     </Button>
 
                     <div className="flex justify-center">
-                      <Button
-                        variant="link"
-                        type="button"
-                        className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">
-                        Need Help?
-                      </Button>
+                      <Dialog
+                        open={showHelpDialog}
+                        onOpenChange={setShowHelpDialog}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="link"
+                            type="button"
+                            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">
+                            Need Help?
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Registration Help</DialogTitle>
+                            <DialogDescription>
+                              If you need assistance with registration, please
+                              contact our support team:
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="flex items-center gap-3">
+                              <Phone className="h-5 w-5 text-muted-foreground" />
+                              <div>
+                                <p className="font-medium">Phone Support</p>
+                                <p className="text-sm text-muted-foreground">
+                                  +63 912 345 6789
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <Mail className="h-5 w-5 text-muted-foreground" />
+                              <div>
+                                <p className="font-medium">Email Support</p>
+                                <p className="text-sm text-muted-foreground">
+                                  support@seniore.com
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex justify-end">
+                            <Button
+                              variant="outline"
+                              onClick={() => setShowHelpDialog(false)}>
+                              Close
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
                 </form>

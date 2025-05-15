@@ -26,6 +26,9 @@ import {
   type SeniorCitizenFormValues
 } from './senior-citizen-content-form.ts';
 
+import supabase from '@/shared/supabase.ts';
+import { toast } from 'sonner';
+
 // const defaultValues = {
 //   firstName: "",
 //   lastName: "",
@@ -38,57 +41,92 @@ import {
 
 export type SeniorCitizenFormValues = z.infer<typeof seniorCitizenSchema>;
 
+interface SeniorFormValues {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  middleName?: string;
+  age: number;
+  healthStatus: 'excellent' | 'good' | 'fair' | 'poor';
+  contactNumber: string;
+  profileImg?: any;
+}
+
 const SeniorCitizenContentForm = () => {
-  const form = useForm<SeniorCitizenFormValues>({
+  const form = useForm<SeniorFormValues>({
     resolver: zodResolver(seniorCitizenSchema),
-    mode: 'onTouched'
-    //defaultValues: defaultValues
+    mode: 'onTouched',
+    defaultValues: {
+      healthStatus: 'good',
+      age: 60
+    }
   });
 
-  const { isAddingUser, createUser } = useAddSeniorCitizen();
-
+  const { createUser } = useAddSeniorCitizen();
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
-  // const resetForm = () => {
-  //   form.reset(defaultValues);
-  // };
-
-  const onSubmit: SubmitHandler<SeniorCitizenFormValues | any> = async (
-    data: SeniorCitizenFormValues
-  ) => {
+  const onSubmit = async (data: SeniorFormValues) => {
     try {
-      const {
-        email,
-        password,
-        firstName,
-        lastName,
-        middleName,
-        age,
-        healthStatus,
-        contactNumber,
-        profileImg
-      } = data;
-      const seniorCitizenData = {
-        firstName,
-        lastName,
-        middleName,
-        age,
-        healthStatus,
-        contactNumber,
-        profileImg,
-        email,
-        password
-      };
+      // First create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            firstName: data.firstName,
+            lastName: data.lastName,
+            userRole: 'senior_citizen'
+          }
+        }
+      });
 
-      console.log(seniorCitizenData);
-      await createUser(seniorCitizenData);
+      if (authError) throw authError;
 
-      //resetForm();
+      // Insert into sb_users table
+      const { error: userError } = await supabase.from('sb_users').insert({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        middleName: data.middleName,
+        email: data.email,
+        password: data.password,
+        userRole: 'senior_citizen',
+        user_uid: authData.user?.id,
+        contactNo: data.contactNumber,
+        email_verified: false,
+        created_at: new Date().toISOString()
+      });
+
+      if (userError) throw userError;
+
+      // Insert into senior_citizens table
+      const { error: seniorError } = await supabase
+        .from('senior_citizens')
+        .insert({
+          firstName: data.firstName,
+          lastName: data.lastName,
+          middleName: data.middleName,
+          email: data.email,
+          password: data.password,
+          userRole: 'senior_citizen',
+          user_uid: authData.user?.id,
+          contactNumber: data.contactNumber,
+          isEmailVerified: false,
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          age: data.age,
+          healthStatus: data.healthStatus,
+          profileImg: data.profileImg
+        });
+
+      if (seniorError) throw seniorError;
+
+      toast.success('Senior citizen added successfully!');
+      form.reset();
       setIsOpen(false);
-
-      console.log(form.getValues());
     } catch (err) {
-      console.error(`[SubmittingError]: ${err}`);
+      console.error('[SubmittingError]:', err);
+      toast.error('Failed to add senior citizen. Please try again.');
     }
   };
 
@@ -107,7 +145,20 @@ const SeniorCitizenContentForm = () => {
           </DialogTitle>
         </DialogHeader>
         <div className="overflow-y-auto px-6 py-4 max-h-[calc(90vh-8rem)]">
-          <SeniorCitizenForm form={form} onSubmit={onSubmit} />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <SeniorCitizenForm form={form} isAdminForm={true} />
+            <div className="flex justify-end gap-4 pt-4 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-primary">
+                Save Senior Citizen
+              </Button>
+            </div>
+          </form>
         </div>
       </DialogContent>
     </Dialog>

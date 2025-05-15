@@ -56,6 +56,16 @@ import MedicalHistoryForm from './medical-history/medical-history-form';
 import { cn } from '@/lib/utils';
 import supabase from '@/shared/supabase';
 import SeniorCitizenContentForm from './senior-citizen-content-form.tsx';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { toast } from 'sonner';
+import { Pencil, FileText } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '@/components/ui/popover';
+import { Command, CommandGroup, CommandItem } from '@/components/ui/command';
+import { ArrowUpCircle, ArchiveIcon } from 'lucide-react';
 
 type HealthStatusColor = {
   [key in 'excellent' | 'good' | 'fair' | 'poor']: string;
@@ -190,24 +200,19 @@ const SeniorCitizenList = () => {
     }
   };
 
-  const handleEditSenior = (seniorCitizen: any) => {
-    setSelectedSenior(seniorCitizen);
+  const handleEdit = (senior: any) => {
+    setSelectedSenior(senior);
     setIsEditModalOpen(true);
   };
 
-  const handleViewMedicalHistory = (seniorCitizen: any) => {
-    setSelectedSeniorForMedical(seniorCitizen);
+  const handleViewMedical = (senior: any) => {
+    setSelectedSeniorForMedical(senior);
     setShowMedicalModal(true);
   };
 
   const handleModalClose = () => {
     setIsEditModalOpen(false);
     setSelectedSenior(null);
-  };
-
-  const handleRowClick = (seniorCitizen: any) => {
-    if (seniorCitizen.is_archived) return;
-    handleViewMedicalHistory(seniorCitizen);
   };
 
   const handleMedicalModalClose = () => {
@@ -250,11 +255,7 @@ const SeniorCitizenList = () => {
     return memoSeniorCitizens.map((seniorCitizen: any) => (
       <TableRow
         key={seniorCitizen.id}
-        onClick={() => handleRowClick(seniorCitizen)}
-        className={cn(
-          'cursor-pointer hover:bg-muted/50',
-          seniorCitizen.is_archived && 'opacity-50 pointer-events-none'
-        )}>
+        className="transition-colors hover:bg-muted/50">
         <TableCell className="hidden sm:table-cell">
           <img
             alt={`${seniorCitizen.firstName}'s avatar`}
@@ -294,49 +295,39 @@ const SeniorCitizenList = () => {
           {seniorCitizen.email}
         </TableCell>
         <TableCell>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => handleEdit(seniorCitizen)}
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2">
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={() => handleViewMedical(seniorCitizen)}
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2">
+              <FileText className="h-4 w-4" />
+            </Button>
+            {seniorCitizen.is_archived ? (
               <Button
-                aria-label={`Actions for ${seniorCitizen.firstName} ${seniorCitizen.lastName}`}
-                size="icon"
+                onClick={() => handleStatusClick(seniorCitizen, false)}
                 variant="ghost"
-                onClick={e => e.stopPropagation()}>
-                <MoreHorizontalIcon className="h-4 w-4" />
+                size="sm"
+                className="h-8 px-2 text-green-600 hover:text-green-700">
+                <ArrowUpCircle className="h-4 w-4" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={e => {
-                  e.stopPropagation();
-                  handleEditSenior(seniorCitizen);
-                }}
-                disabled={seniorCitizen.is_archived}>
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={e => {
-                  e.stopPropagation();
-                  handleViewMedicalHistory(seniorCitizen);
-                }}
-                disabled={seniorCitizen.is_archived}>
-                View Medical History
-              </DropdownMenuItem>
-              {seniorCitizen.is_archived ? (
-                <DropdownMenuItem
-                  onClick={() => handleStatusClick(seniorCitizen, false)}
-                  className="text-green-600 focus:text-green-600">
-                  Unarchive
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem
-                  onClick={() => handleStatusClick(seniorCitizen, true)}
-                  className="text-red-600 focus:text-red-600">
-                  Archive
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            ) : (
+              <Button
+                onClick={() => handleStatusClick(seniorCitizen, true)}
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-red-600 hover:text-red-700">
+                <ArchiveIcon className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </TableCell>
       </TableRow>
     ));
@@ -501,13 +492,7 @@ const SeniorCitizenList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <Dialog
-        open={isEditModalOpen}
-        onOpenChange={open => {
-          if (!open) {
-            handleModalClose();
-          }
-        }}>
+      <Dialog open={isEditModalOpen} onOpenChange={handleModalClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] md:w-[90vw] p-0">
           <DialogHeader className="px-6 py-4 border-b sticky top-0 bg-white dark:bg-gray-800 z-10">
             <DialogTitle className="text-xl font-semibold">
@@ -528,12 +513,17 @@ const SeniorCitizenList = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showMedicalModal} onOpenChange={setShowMedicalModal}>
-        <MedicalHistoryForm
-          seniorId={selectedSeniorForMedical?.id}
-          recordToEdit={medicalRecord}
-          onSuccess={handleMedicalModalClose}
-        />
+      <Dialog open={showMedicalModal} onOpenChange={handleMedicalModalClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Medical History</DialogTitle>
+          </DialogHeader>
+          <MedicalHistoryForm
+            seniorId={selectedSeniorForMedical?.id}
+            recordToEdit={medicalRecord}
+            onClose={handleMedicalModalClose}
+          />
+        </DialogContent>
       </Dialog>
     </>
   );
