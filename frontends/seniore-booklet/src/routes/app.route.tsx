@@ -11,6 +11,7 @@ import MedicinePage from '@/modules/admin/medicines/medicine.page';
 import PharmacyList from '@/modules/admin/pharmacy/pharmacy-list';
 import PharmacyPage from '@/modules/admin/pharmacy/pharmacy.page';
 import MedicineReportPage from '@/modules/admin/reports/medicines-report/medicine.report';
+import PharmacyReportPage from '@/modules/admin/reports/pharmacy-report/pharmacy.report';
 // import UserArchiveList from "@/modules/admin/users/components/user-archive-list";
 import UsersList from '@/modules/admin/users/user-list';
 import UserPage from '@/modules/admin/users/users.page';
@@ -34,6 +35,10 @@ import BrandNamePage from '@/modules/settings/brand-name/brand-name.page';
 import FingerPrintApp from '@/modules/settings/fingerprint.page';
 import GenericNamePage from '@/modules/settings/generic-name/generic-name.page';
 import SettingsPage from '@/modules/settings/settings.page';
+import UserReportPage from '@/modules/admin/reports/users-report/user.report';
+import UserFilterList from '@/modules/admin/reports/users-report/user-list-filter';
+import TransactionReportPage from '@/modules/admin/reports/transaction-report/transaction.report';
+import SeniorReportPage from '@/modules/admin/reports/senior-report/senior.report';
 import { createBrowserRouter } from 'react-router-dom';
 import { AdminRoute, SeniorRoute, CashierRoute } from './route-protection';
 
@@ -207,6 +212,28 @@ export const router = createBrowserRouter([
                 Component: GenericNamePage
               }
             ]
+          },
+          {
+            path: 'users-report',
+            element: <UserReportPage />,
+            children: [
+              {
+                path: 'users-list',
+                element: <UserFilterList />
+              }
+            ]
+          },
+          {
+            path: 'pharmacy-report',
+            element: <PharmacyReportPage />
+          },
+          {
+            path: 'transaction-report',
+            element: <TransactionReportPage />
+          },
+          {
+            path: 'senior-report',
+            element: <SeniorReportPage />
           }
         ]
       }

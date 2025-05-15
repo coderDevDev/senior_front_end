@@ -342,10 +342,9 @@ const UsersList = () => {
           <Button
             className="h-8 gap-1 bg-[#0B0400] text-white"
             size="sm"
-            variant="gooeyLeft"
+            variant="default"
             onClick={handleAddUser}>
             <PlusCircleIcon className="h-3.5 w-3.5" />
-
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
               Add User
             </span>
