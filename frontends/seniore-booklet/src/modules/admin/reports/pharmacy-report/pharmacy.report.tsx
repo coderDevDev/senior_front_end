@@ -37,8 +37,7 @@ const PharmacyReportPage = () => {
 
       const stats = {
         total: pharmacies?.length || 0,
-        activePharmacies:
-          pharmacies?.filter(p => p.status === 'active').length || 0,
+        activePharmacies: pharmacies?.length || 0,
         totalMedicines:
           pharmacies?.reduce(
             (acc, pharmacy) => acc + (pharmacy.medicine?.length || 0),

@@ -131,13 +131,8 @@ const MedicineList = () => {
 
     return medicinesList.filter((medicine: IMedicine) => {
       if (statusFilter !== 'all') {
-        if (statusFilter === 'active' && medicine.status === 'archived')
-          return false;
-        if (
-          statusFilter === 'archived' &&
-          (!medicine.status || medicine.status === 'active')
-        )
-          return false;
+        if (statusFilter === 'active' && medicine.isArchived) return false;
+        if (statusFilter === 'archived' && !medicine.isArchived) return false;
       }
 
       if (!searchTerm) return true;
@@ -169,7 +164,7 @@ const MedicineList = () => {
           !medicine.status || medicine.status === 'active'
       ).length,
       archived: medicineList.filter(
-        (medicine: IMedicine) => medicine.status === 'archived'
+        (medicine: IMedicine) => medicine.isArchived
       ).length
     };
   }, [medicines]);
