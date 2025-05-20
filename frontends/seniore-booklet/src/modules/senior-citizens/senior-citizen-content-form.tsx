@@ -23,7 +23,7 @@ import {
 import { PlusIcon } from 'lucide-react';
 import {
   seniorCitizenSchema,
-  type SeniorCitizenFormValues
+  type SeniorCitizenFormValues as ImportedSeniorCitizenFormValues
 } from './senior-citizen-content-form.ts';
 
 import supabase from '@/shared/supabase.ts';
@@ -131,7 +131,7 @@ const SeniorCitizenContentForm = () => {
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button className="ml-4">
           <PlusIcon className="h-4 w-4 mr-2" />

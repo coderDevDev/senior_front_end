@@ -52,10 +52,31 @@ export function ProfilePage() {
   const { user, isLoading: isUserLoading } = useCurrentUser();
   const fingerprintService = new FingerprintService();
   const [showScanner, setShowScanner] = useState(false);
-  const [prints, setPrints] = useState<any[]>([]);
+  const [prints, setPrints] = useState<Fingerprint[]>([]);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+
+  // Fetch senior citizen data from senior_citizens table
+  const { data: seniorData, isLoading: isSeniorDataLoading } = useQuery({
+    queryKey: ['senior-profile', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('senior_citizens')
+        .select('*')
+        .eq('user_uid', user?.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching senior data:', error);
+        throw error;
+      }
+
+      console.log('Senior data from DB:', data);
+      return data;
+    }
+  });
 
   // Initialize form with empty values that will be filled when user data loads
   const form = useForm<ProfileFormValues>({
@@ -104,21 +125,28 @@ export function ProfilePage() {
 
   // Populate form when user data is available
   useEffect(() => {
-    if (user && !isUserLoading) {
+    if (!isUserLoading && user && seniorData) {
       // Safely access nested properties with optional chaining
       form.reset({
-        firstName: user?.user_metadata?.firstName || '',
-        lastName: user?.user_metadata?.lastName || '',
-        middleName: user?.user_metadata?.middleName || '',
+        firstName:
+          seniorData?.firstName || user?.user_metadata?.firstName || '',
+        lastName: seniorData?.lastName || user?.user_metadata?.lastName || '',
+        middleName:
+          seniorData?.middleName || user?.user_metadata?.middleName || '',
         email: user?.email || '',
-        contactNumber: user?.user_metadata?.contactNumber || '',
-        address: user?.user_metadata?.address || '',
-        birthPlace: user?.user_metadata?.birthPlace || '',
-        birthdate: user?.user_metadata?.birthdate || '',
-        healthStatus: user?.user_metadata?.healthStatus || 'good'
+        contactNumber: seniorData?.contactNumber || '',
+        address: seniorData?.address || '',
+        birthPlace: seniorData?.birthPlace || '',
+        birthdate: seniorData?.birthdate || '',
+        healthStatus: seniorData?.healthStatus || 'good'
       });
+
+      // Set profile image if available
+      if (seniorData?.profileImg) {
+        setProfileImageUrl(seniorData.profileImg);
+      }
     }
-  }, [user, isUserLoading, form]);
+  }, [user, isUserLoading, seniorData, form]);
 
   // Check fingerprint status
   const { data: fingerprintStatus, isLoading: isCheckingStatus } = useQuery({

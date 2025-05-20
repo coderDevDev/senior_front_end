@@ -1,43 +1,52 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import axios from "axios";
-import IUser from "../user.interface";
- 
-const addUser = async (user:  Partial<IUser>) => {
-  try {
+import axios from 'axios';
+import IUser from '../user.interface';
 
-      return await axios({
-        method: "POST",
-        url: `${import.meta.env.VITE_SERVER_URL}/api/v1/user/create_user`,
-        data: user
-      });
+import supabase from '@/shared/supabase';
+
+const addUser = async (user: Partial<IUser>) => {
+  try {
+    return await axios({
+      method: 'POST',
+      url: `${import.meta.env.VITE_SERVER_URL}/api/v1/user/create_user`,
+      data: user
+    });
   } catch (err) {
     if (err instanceof axios.AxiosError) {
       console.log(err.response?.data.error);
       throw new Error(`${err.response?.data.error}`);
     }
   }
-}
+};
 
 const getAllUsers = async () => {
-  try{
-    const users =  await axios({
-      method: "GET",
-      url: `${import.meta.env.VITE_SERVER_URL}/api/v1/user/`,
-    });
+  try {
+    // const users =  await axios({
+    //   method: "GET",
+    //   url: `${import.meta.env.VITE_SERVER_URL}/api/v1/user/`,
+    // });
+    const { data: users, error } = await supabase
+      .from('sb_users')
+      .select('*')
+      .or('userRole.eq.admin,userRole.eq.cashier');
 
-    return users?.data;
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return users;
   } catch (err) {
     if (err instanceof axios.AxiosError) {
       console.log(err.response?.data.error);
       throw new Error(`${err.response?.data.error}`);
     }
   }
-}
+};
 
 const updateUser = async (userData: Partial<IUser>) => {
   try {
     const response = await axios({
-      method: "PUT",
+      method: 'PUT',
       url: `${import.meta.env.VITE_SERVER_URL}/api/v1/user/update_user`,
       data: userData
     });
@@ -53,7 +62,7 @@ const updateUser = async (userData: Partial<IUser>) => {
 const archiveUserStatus = async (userData: Partial<IUser>) => {
   try {
     const response = await axios({
-      method: "PUT",
+      method: 'PUT',
       url: `${import.meta.env.VITE_SERVER_URL}/api/v1/user/archive_user`,
       data: userData
     });
@@ -83,7 +92,7 @@ const archiveUserStatus = async (userData: Partial<IUser>) => {
 const unarchiveUser = async (payload: any) => {
   try {
     const response = await axios({
-      method: "PUT",
+      method: 'PUT',
       url: `${import.meta.env.VITE_SERVER_URL}/api/v1/user/unarchive_user`,
       data: payload
     });
@@ -98,8 +107,8 @@ const unarchiveUser = async (payload: any) => {
 const getArchivedUsers = async () => {
   try {
     const response = await axios({
-      method: "GET",
-      url: `${import.meta.env.VITE_SERVER_URL}/api/v1/user/archived`,
+      method: 'GET',
+      url: `${import.meta.env.VITE_SERVER_URL}/api/v1/user/archived`
     });
     return response.data;
   } catch (err) {
@@ -110,6 +119,10 @@ const getArchivedUsers = async () => {
 };
 
 export {
-  addUser, archiveUserStatus, getAllUsers, getArchivedUsers, unarchiveUser, updateUser
+  addUser,
+  archiveUserStatus,
+  getAllUsers,
+  getArchivedUsers,
+  unarchiveUser,
+  updateUser
 };
-

@@ -41,17 +41,8 @@ export const medicineSchema = z.object({
     .min(3, 'Dosage Form must contain at least 3 character(s)')
     .max(100, { message: 'Dosage Form must only contains 100 characters' })
     .trim(),
-  medicineImageFile: z
-    .instanceof(File)
-    .refine(
-      file => file.size <= 5 * 1024 * 1024,
-      `File size should be less than 5MB.`
-    )
-    .refine(
-      file => ['image/jpeg', 'image/png', 'image/webp'].includes(file.type),
-      'Only .jpg, .png, and .webp files are accepted.'
-    )
-    .optional(),
+  medicineImageUrl: z.string().optional(),
+  medicineImageFile: z.any().optional(),
   prescriptionRequired: z.boolean().optional(),
   isActive: z.boolean().optional()
 });
@@ -150,7 +141,7 @@ const MedicineContentForm = ({
           className={`py-4 bg-overlay-bg
               border-b border-overlay-border px-6 bg-overlay-bg border-overlay-border flex-shrink-0`}>
           <div>
-            <h3 className="text-lg font-medium">Create Medicne</h3>
+            <h3 className="text-lg font-medium"> Medicne Details</h3>
             <p className="text-xs text-muted-foreground">
               Fill in the details to standout your medicne to the Customer.
             </p>

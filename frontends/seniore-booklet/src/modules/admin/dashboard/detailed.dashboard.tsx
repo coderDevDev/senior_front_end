@@ -7,23 +7,21 @@ import {
   CardTitle
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import // Select,
+// SelectContent,
+// SelectItem,
+// SelectTrigger,
+// SelectValue
+'@/components/ui/select';
+import // Table,
+// TableBody,
+// TableCell,
+// TableHead,
+// TableHeader,
+// TableRow
+'@/components/ui/table';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table';
-import {
-  Calendar,
+  // Calendar,
   Clock,
   MapPin,
   Mail,
@@ -47,7 +45,7 @@ import supabase from '@/shared/supabase';
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
+  // PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,

@@ -88,6 +88,8 @@ const RoleBadge = ({ role }: { role: string }) => {
 
 const UsersList = () => {
   const { data: usersData, isLoading, error, refetch } = useReadUsers();
+
+  console.log({ usersData });
   const { archiveUserHandler, isPending: isStatusUpdating } = useArchiveUser();
   const { UnarchiveUserHandler, isPending: isUnarchiveUpdating } =
     useUnarchiveUser();
@@ -152,7 +154,7 @@ const UsersList = () => {
   };
 
   const filteredUsers = useMemo(() => {
-    const users = usersData?.data?.students || [];
+    const users = usersData || [];
 
     console.log({ users });
     return users
@@ -182,7 +184,7 @@ const UsersList = () => {
 
   // Count users by status
   const userCounts = useMemo(() => {
-    const users = usersData?.data?.students || [];
+    const users = usersData || [];
     return {
       all: users.length,
       active: users.filter(
@@ -402,7 +404,7 @@ const UsersList = () => {
           </div>
           <div className="text-sm text-muted-foreground">
             Filter: <strong className="capitalize">{statusFilter}</strong> |
-            Total Users: <strong>{usersData?.data?.totalDocs || 0}</strong>
+            Total Users: <strong>{usersData?.length || 0}</strong>
           </div>
         </CardFooter>
       </Card>

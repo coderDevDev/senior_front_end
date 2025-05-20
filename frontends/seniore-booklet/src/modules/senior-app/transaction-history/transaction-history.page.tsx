@@ -20,10 +20,20 @@ export function TransactionHistoryPage() {
     null
   );
 
+  console.log({ user });
   // Fetch orders for the current senior citizen user
   const { data: orders, isLoading } = useQuery({
     queryKey: ['senior-orders', user?.id],
     queryFn: async () => {
+      // query from senior_citizens table
+      const { data: seniorData, error: seniorError } = await supabase
+        .from('senior_citizens')
+        .select('*')
+        .eq('user_uid', user?.id)
+        .single();
+
+      console.log({ seniorData, user });
+
       const { data, error } = await supabase
         .from('orders')
         .select(
@@ -40,7 +50,7 @@ export function TransactionHistoryPage() {
           )
         `
         )
-        .eq('senior_id', user?.id)
+        .eq('senior_id', seniorData?.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
