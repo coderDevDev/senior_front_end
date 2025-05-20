@@ -45,9 +45,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 const MedicineList = () => {
-  const { data: medicines, isLoading, error } = useMedicines();
+  const queryClient = useQueryClient();
+  const { data: medicines, isLoading, error, refetch } = useMedicines();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingMedicine, setEditingMedicine] = useState<
@@ -95,15 +98,31 @@ const MedicineList = () => {
     if (!medicineToUpdate) return;
 
     try {
+      console.log('Updating medicine status:', {
+        medicine: medicineToUpdate,
+        isArchiving
+      });
+
       if (isArchiving) {
         await archiveMedicineHandler(medicineToUpdate);
       } else {
         await UnarchiveMedicineHandler(medicineToUpdate);
       }
+
+      await queryClient.invalidateQueries({ queryKey: ['medicines'] });
+      await refetch();
+
       setStatusDialogOpen(false);
       setMedicineToUpdate(null);
+
+      toast.success(
+        isArchiving
+          ? `${medicineToUpdate.name} has been archived`
+          : `${medicineToUpdate.name} has been restored`
+      );
     } catch (error) {
       console.error('Error updating medicine status:', error);
+      toast.error('Failed to update medicine status');
     }
   };
 
@@ -211,42 +230,80 @@ const MedicineList = () => {
         </TableCell>
         <TableCell>
           <Badge variant="outline">
-            {medicine.status === 'archived' ? 'Archived' : 'Active'}
+            {medicine.isArchived ? 'Archived' : 'Active'}
           </Badge>
         </TableCell>
-        <TableCell className="hidden md:table-cell"></TableCell>
         <TableCell>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => handleEditMedicine(medicine)}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="lucide lucide-pencil">
+                <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                <path d="m15 5 4 4" />
+              </svg>
+              <span className="sr-only">Edit</span>
+            </Button>
+
+            {!medicine.isArchived ? (
               <Button
-                aria-label={`Actions for ${medicine.name}`}
-                size="icon"
-                variant="ghost">
-                <MoreHorizontalIcon className="h-4 w-4" />
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                onClick={() => handleStatusClick(medicine, true)}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-archive">
+                  <rect width="20" height="5" x="2" y="3" rx="1" />
+                  <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
+                  <path d="M10 12h4" />
+                </svg>
+                <span className="sr-only">Archive</span>
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => handleEditMedicine(medicine)}
-                disabled={medicine.status === 'archived'}>
-                Edit
-              </DropdownMenuItem>
-              {medicine.status === 'archived' ? (
-                <DropdownMenuItem
-                  onClick={() => handleStatusClick(medicine, false)}
-                  className="text-green-600 focus:text-green-600">
-                  Unarchive
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem
-                  onClick={() => handleStatusClick(medicine, true)}
-                  className="text-red-600 focus:text-red-600">
-                  Archive
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0 text-green-500 hover:text-green-600 hover:bg-green-50"
+                onClick={() => handleStatusClick(medicine, false)}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-rotate-ccw">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                </svg>
+                <span className="sr-only">Restore</span>
+              </Button>
+            )}
+          </div>
         </TableCell>
       </TableRow>
     ));
@@ -295,7 +352,7 @@ const MedicineList = () => {
           <Button
             className="h-8 gap-1 bg-[#0B0400]"
             size="sm"
-            variant="gooeyLeft"
+            variant="default"
             onClick={handleAddMedicine}>
             <PlusCircleIcon className="h-3.5 w-3.5" />
             <span className="text-white sr-only sm:not-sr-only">
@@ -325,9 +382,7 @@ const MedicineList = () => {
                   <span className="sr-only">Image</span>
                 </TableHead>
                 <TableHead>Name</TableHead>
-                <TableHead className="hidden md:table-cell">
-                  Dosage Form
-                </TableHead>
+
                 <TableHead>Status</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
@@ -381,20 +436,13 @@ const MedicineList = () => {
         }}>
         <AlertDialogContent className="z-50">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {isArchiving ? 'Archive Medicine' : 'Unarchive Medicine'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {isArchiving ? (
-                <>
-                  This will archive the medicine "{medicineToUpdate?.name}".
-                  Archived medicines will no longer be accessible but their data
-                  will be preserved.
-                </>
-              ) : (
-                <>
-                  This will unarchive the medicine "{medicineToUpdate?.name}".
-                  The medicine will be accessible again.
-                </>
-              )}
+              {isArchiving
+                ? 'Are you sure you want to archive this medicine? Archived medicines will not be visible to users.'
+                : 'Are you sure you want to unarchive this medicine? Unarchived medicines will be visible to users.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -403,7 +451,8 @@ const MedicineList = () => {
                 document.body.style.pointerEvents = 'auto';
                 setStatusDialogOpen(false);
                 setMedicineToUpdate(null);
-              }}>
+              }}
+              disabled={isStatusUpdating}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -411,16 +460,18 @@ const MedicineList = () => {
                 e.preventDefault();
                 confirmStatusUpdate();
               }}
-              disabled={isStatusUpdating || isUnarchiveUpdating}
-              className={
-                isArchiving
-                  ? 'bg-red-600 hover:bg-red-700'
-                  : 'bg-green-600 hover:bg-green-700'
-              }>
-              {isStatusUpdating || isUnarchiveUpdating ? (
-                <Spinner className="h-4 w-4 mr-2" />
-              ) : null}
-              {isArchiving ? 'Archive Medicine' : 'Unarchive Medicine'}
+              disabled={isStatusUpdating}
+              className={isArchiving ? 'bg-destructive' : 'bg-primary'}>
+              {isStatusUpdating ? (
+                <>
+                  <Spinner className="mr-2 h-4 w-4" />
+                  Processing...
+                </>
+              ) : isArchiving ? (
+                'Archive'
+              ) : (
+                'Unarchive'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

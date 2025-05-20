@@ -154,27 +154,30 @@ const UsersList = () => {
   const filteredUsers = useMemo(() => {
     const users = usersData?.data?.students || [];
 
-    return users.filter((user: IUser) => {
-      // Apply status filter
-      if (statusFilter !== 'all') {
-        if (statusFilter === 'active' && user.status === 'archived')
-          return false;
-        if (
-          statusFilter === 'archived' &&
-          (!user.status || user.status === 'active')
-        )
-          return false;
-      }
+    console.log({ users });
+    return users
+      .filter((user: IUser) => {
+        // Apply status filter
+        if (statusFilter !== 'all') {
+          if (statusFilter === 'active' && user.status === 'archived')
+            return false;
+          if (
+            statusFilter === 'archived' &&
+            (!user.status || user.status === 'active')
+          )
+            return false;
+        }
 
-      // Apply search filter if there's a search term
-      if (!searchTerm) return true;
+        // Apply search filter if there's a search term
+        if (!searchTerm) return true;
 
-      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
-      const email = user.email.toLowerCase();
-      const term = searchTerm.toLowerCase();
+        const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+        const email = user.email.toLowerCase();
+        const term = searchTerm.toLowerCase();
 
-      return fullName.includes(term) || email.includes(term);
-    });
+        return fullName.includes(term) || email.includes(term);
+      })
+      .filter(u => ['admin', 'cashier'].includes(u.userRole));
   }, [usersData, searchTerm, statusFilter]);
 
   // Count users by status

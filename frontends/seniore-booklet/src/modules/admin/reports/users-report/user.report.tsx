@@ -36,7 +36,7 @@ const UserReportPage = () => {
         total: users?.length || 0,
         byRole: {
           admin: users?.filter(u => u.userRole === 'admin').length || 0,
-          staff: users?.filter(u => u.userRole === 'staff').length || 0,
+
           cashier: users?.filter(u => u.userRole === 'cashier').length || 0
         },
         activeUsers: users?.filter(u => u.isVerified).length || 0,
@@ -48,20 +48,12 @@ const UserReportPage = () => {
   });
 
   const chartData = {
-    labels: ['Admin', 'Staff', 'Cashier'],
+    labels: ['Admin', 'Cashier'],
     datasets: [
       {
         label: 'Users by Role',
-        data: [
-          userStats?.byRole.admin || 0,
-          userStats?.byRole.staff || 0,
-          userStats?.byRole.cashier || 0
-        ],
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.5)',
-          'rgba(54, 162, 235, 0.5)',
-          'rgba(75, 192, 192, 0.5)'
-        ]
+        data: [userStats?.byRole.admin || 0, userStats?.byRole.cashier || 0],
+        backgroundColor: ['rgba(255, 99, 132, 0.5)', 'rgba(75, 192, 192, 0.5)']
       }
     ]
   };

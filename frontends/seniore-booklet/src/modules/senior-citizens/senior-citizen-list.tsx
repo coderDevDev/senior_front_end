@@ -141,6 +141,7 @@ const SeniorCitizenList = () => {
   });
 
   const memoSeniorCitizens = useMemo(() => {
+    console.log({ seniorCitizensData });
     const seniors = seniorCitizensData?.data?.data?.seniorCitizens || [];
 
     return seniors.filter((senior: any) => {
@@ -201,6 +202,7 @@ const SeniorCitizenList = () => {
   };
 
   const handleEdit = (senior: any) => {
+    console.log({ senior });
     setSelectedSenior(senior);
     setIsEditModalOpen(true);
   };
@@ -505,7 +507,7 @@ const SeniorCitizenList = () => {
           <div className="overflow-y-auto px-6 py-4 max-h-[calc(90vh-8rem)]">
             {selectedSenior && (
               <UpdateSeniorForm
-                seniorData={selectedSenior}
+                seniorDataForm={selectedSenior}
                 onSuccess={handleModalClose}
               />
             )}

@@ -1,217 +1,247 @@
-"use client"
+'use client';
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { UserNav } from "@/components/user-header"
-import { AnimatePresence, motion } from "framer-motion"
-import {
-  AlertCircle,
-  Filter,
-  Receipt,
-  Search,
-  X
-} from "lucide-react"
-import { useState } from "react"
-
-// Update the transactions type and sample data
-interface Transaction {
-  id: number
-  date: string
-  medicines: string[]
-  total: string
-  status: "Completed" | "Processing"
-  referenceNumber: string
-  pharmacy: string
-}
-
-// Sample data for demonstration
-const transactions: Transaction[] = [
-  {
-    id: 1,
-    date: "2024-01-15",
-    medicines: ["Aspirin", "Lisinopril"],
-    total: "₱180.50",
-    status: "Completed",
-    referenceNumber: "TRX-001",
-    pharmacy: "Mercury Drug Store"
-  },
-  {
-    id: 2,
-    date: "2024-01-14",
-    medicines: ["Metformin"],
-    total: "₱95.75",
-    status: "Processing",
-    referenceNumber: "TRX-002",
-    pharmacy: "South Star Drug"
-  },
-  {
-    id: 3,
-    date: "2024-01-13",
-    medicines: ["Omeprazole", "Simvastatin", "Levothyroxine"],
-    total: "₱275.25",
-    status: "Completed",
-    referenceNumber: "TRX-003",
-    pharmacy: "Mercury Drug Store"
-  }
-]
-
-const statusColors = {
-  Completed: {
-    bg: "bg-green-50 dark:bg-green-900/20",
-    text: "text-green-700 dark:text-green-300",
-    border: "border-green-200 dark:border-green-800"
-  },
-  Processing: {
-    bg: "bg-yellow-50 dark:bg-yellow-900/20",
-    text: "text-yellow-700 dark:text-yellow-300",
-    border: "border-yellow-200 dark:border-yellow-800"
-  }
-}
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { UserNav } from '@/components/user-header';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertCircle, Receipt, Search, X } from 'lucide-react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import supabase from '@/shared/supabase';
+import useCurrentUser from '@/modules/authentication/hooks/useCurrentUser';
+import { Spinner } from '@/components/spinner';
 
 export function TransactionHistoryPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [expandedTransaction, setExpandedTransaction] = useState<number | null>(null)
-  const [showFilters, setShowFilters] = useState(false)
-  // const [statusFilter, setStatusFilter] = useState<"all" | "completed" | "processing">("all")
+  const { user } = useCurrentUser();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedTransaction, setExpandedTransaction] = useState<number | null>(
+    null
+  );
 
-  // Filter transactions based on search query and status
-  const filteredTransactions = transactions.filter((transaction) => {
-    const matchesSearch = searchQuery.toLowerCase().includes(transaction.referenceNumber.toLowerCase()) ||
-      transaction.medicines.some(med => med.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      transaction.pharmacy.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    // const matchesStatus = statusFilter === "all" || 
-    //   transaction.status.toLowerCase() === statusFilter
+  // Fetch orders for the current senior citizen user
+  const { data: orders, isLoading } = useQuery({
+    queryKey: ['senior-orders', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(
+          `
+          *,
+          order_items (
+            *,
+            medicine (
+              *,
+              pharmacy (
+                name
+              )
+            )
+          )
+        `
+        )
+        .eq('senior_id', user?.id)
+        .order('created_at', { ascending: false });
 
-    return matchesSearch 
-  })
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id // Only run query when user ID is available
+  });
+
+  // Filter orders based on search query
+  const filteredOrders = orders?.filter(order => {
+    if (!searchQuery) return true;
+
+    // Search by order ID
+    if (order.id.toLowerCase().includes(searchQuery.toLowerCase())) return true;
+
+    // Search by medicine names
+    if (
+      order.order_items?.some(
+        item =>
+          item.medicine?.name
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          item.medicine?.genericName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
+      )
+    )
+      return true;
+
+    // Search by pharmacy name
+    if (order.pharmacy?.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      return true;
+
+    return false;
+  });
 
   const toggleTransactionDetails = (id: number) => {
-    setExpandedTransaction(expandedTransaction === id ? null : id)
-  }
+    setExpandedTransaction(expandedTransaction === id ? null : id);
+  };
+
+  const statusColors = {
+    Completed: {
+      bg: 'bg-green-50 dark:bg-green-900/20',
+      text: 'text-green-700 dark:text-green-300',
+      border: 'border-green-200 dark:border-green-800'
+    },
+    Processing: {
+      bg: 'bg-yellow-50 dark:bg-yellow-900/20',
+      text: 'text-yellow-700 dark:text-yellow-300',
+      border: 'border-yellow-200 dark:border-yellow-800'
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
-      <div className="container mx-auto max-w-4xl">
-        {/* Header */}
-        <header className="mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold dark:text-white">Transaction History</h1>
-            <UserNav />
-          </div>
+    <div className="container mx-auto p-6">
+      <header className="mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold dark:text-white">
+            Transaction History
+          </h1>
+          <UserNav />
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search transactions..."
+            className="pl-10 pr-10"
+          />
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+              onClick={() => setSearchQuery('')}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </header>
 
-          {/* Search Bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="relative mb-4"
-          >
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-6 w-6" />
-              <Input
-                type="search"
-                placeholder="Search transactions..."
-                className="pl-14 pr-14 h-16 text-lg rounded-full border-2 border-primary/20 focus:border-primary dark:bg-slate-800 dark:border-blue-900/50 dark:focus:border-blue-500"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              {searchQuery && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 h-8 w-8 rounded-full"
-                  onClick={() => setSearchQuery("")}
-                >
-                  <X className="h-5 w-5" />
-                </Button>
-              )}
+      <main>
+        <div className="space-y-4">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-48">
+              <Spinner className="h-8 w-8" />
             </div>
-
-            {/* Filter Toggle */}
-            <div className="flex justify-center mt-3">
-              <Button
-                variant="outline"
-                className="rounded-full px-4 flex items-center gap-2"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter className="h-4 w-4" />
-                {showFilters ? "Hide Filters" : "Show Filters"}
-              </Button>
-            </div>
-          </motion.div>
-        </header>
-
-        {/* Main Content */}
-        <main>
-          {/* Transactions List */}
-          <div className="space-y-4">
-            <AnimatePresence>
-              {filteredTransactions.length > 0 ? (
-                filteredTransactions.map((transaction, index) => (
+          ) : (
+            <AnimatePresence initial={false}>
+              {filteredOrders && filteredOrders.length > 0 ? (
+                filteredOrders.map(order => (
                   <motion.div
-                    key={transaction.id}
-                    initial={{ opacity: 0, y: 20 }}
+                    key={order.id}
+                    layout
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Card className="overflow-hidden border-2 dark:border-slate-700 dark:bg-slate-800">
-                      <CardContent className="p-0">
-                        <div
-                          className="p-4 cursor-pointer"
-                          onClick={() => toggleTransactionDetails(transaction.id)}
-                          role="button"
-                          tabIndex={0}
-                        >
-                          <div className="flex justify-between items-start mb-3">
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}>
+                    <Card
+                      className="overflow-hidden dark:bg-slate-800 dark:border-slate-700"
+                      onClick={() => toggleTransactionDetails(order.id)}>
+                      <CardContent className="p-4">
+                        <div className="space-y-3 cursor-pointer">
+                          <div className="flex justify-between items-center">
                             <div>
-                              <h3 className="text-lg font-bold dark:text-white">
-                                {transaction.referenceNumber}
+                              <h3 className="font-semibold dark:text-white">
+                                Order #{order.id}
                               </h3>
                               <p className="text-sm text-muted-foreground">
-                                {new Date(transaction.date).toLocaleDateString()}
+                                {new Date(
+                                  order.created_at
+                                ).toLocaleDateString()}
                               </p>
                             </div>
                             <Badge
                               variant="outline"
-                              className={`${statusColors[transaction.status as keyof typeof statusColors].bg} 
-                                ${statusColors[transaction.status as keyof typeof statusColors].text}
-                                ${statusColors[transaction.status as keyof typeof statusColors].border}`}
-                            >
-                              {transaction.status}
+                              className={`${
+                                statusColors[
+                                  order.status === 'completed'
+                                    ? 'Completed'
+                                    : 'Processing'
+                                ].bg
+                              } 
+                                ${
+                                  statusColors[
+                                    order.status === 'completed'
+                                      ? 'Completed'
+                                      : 'Processing'
+                                  ].text
+                                }
+                                ${
+                                  statusColors[
+                                    order.status === 'completed'
+                                      ? 'Completed'
+                                      : 'Processing'
+                                  ].border
+                                }`}>
+                              {order.status === 'completed'
+                                ? 'Completed'
+                                : 'Processing'}
                             </Badge>
                           </div>
-                          
+
                           <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2">
                               <Receipt className="h-5 w-5 text-muted-foreground" />
                               <span className="text-muted-foreground">
-                                {transaction.medicines.length} items
+                                {order.order_items?.length || 0} items
                               </span>
                             </div>
-                            <span className="font-bold dark:text-white">{transaction.total}</span>
+                            <span className="font-bold dark:text-white">
+                              ₱{order.discounted_amount.toFixed(2)}
+                            </span>
                           </div>
 
-                          {expandedTransaction === transaction.id && (
+                          {expandedTransaction === order.id && (
                             <motion.div
                               initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
+                              animate={{ opacity: 1, height: 'auto' }}
                               exit={{ opacity: 0, height: 0 }}
-                              className="mt-4 pt-4 border-t dark:border-slate-700"
-                            >
-                              <h4 className="font-semibold mb-2 dark:text-white">Medicines:</h4>
+                              className="mt-4 pt-4 border-t dark:border-slate-700">
+                              <h4 className="font-semibold mb-2 dark:text-white">
+                                Medicines:
+                              </h4>
                               <ul className="space-y-2">
-                                {transaction.medicines.map((medicine, idx) => (
-                                  <li key={idx} className="text-muted-foreground">
-                                    • {medicine}
+                                {order.order_items?.map(item => (
+                                  <li
+                                    key={item.id}
+                                    className="text-muted-foreground">
+                                    • {item.medicine?.name} ({item.quantity} x ₱
+                                    {item.unit_price.toFixed(2)})
                                   </li>
                                 ))}
                               </ul>
+                              <div className="mt-4 grid grid-cols-2 gap-2">
+                                <div>
+                                  <p className="text-sm text-muted-foreground">
+                                    Subtotal:
+                                  </p>
+                                  <p className="font-medium dark:text-white">
+                                    ₱{order.total_amount.toFixed(2)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-muted-foreground">
+                                    Discount:
+                                  </p>
+                                  <p className="font-medium text-green-600">
+                                    ₱
+                                    {(
+                                      order.total_amount -
+                                      order.discounted_amount
+                                    ).toFixed(2)}
+                                  </p>
+                                </div>
+                              </div>
                               <p className="mt-4 text-muted-foreground">
-                                Pharmacy: {transaction.pharmacy}
+                                Pharmacy:{' '}
+                                {order.order_items?.[0]?.medicine?.pharmacy
+                                  ?.name || 'Unknown Pharmacy'}
                               </p>
                             </motion.div>
                           )}
@@ -224,29 +254,25 @@ export function TransactionHistoryPage() {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-center py-12 bg-slate-100 dark:bg-slate-800 rounded-xl"
-                >
+                  className="text-center py-12 bg-slate-100 dark:bg-slate-800 rounded-xl">
                   <AlertCircle className="h-12 w-12 mx-auto mb-4 text-slate-400" />
                   <p className="text-lg text-slate-600 dark:text-slate-400">
                     No transactions found
                   </p>
                   {searchQuery && (
-                    <Button
-                      className="mt-4"
-                      onClick={() => setSearchQuery("")}
-                    >
+                    <Button className="mt-4" onClick={() => setSearchQuery('')}>
                       Clear Search
                     </Button>
                   )}
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
-        </main>
+          )}
+        </div>
+      </main>
 
-        {/* Spacer for bottom navigation */}
-        <div className="h-24"></div>
-      </div>
+      {/* Spacer for bottom navigation */}
+      <div className="h-24"></div>
     </div>
-  )
+  );
 }

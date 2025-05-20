@@ -145,7 +145,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton size="lg" asChild>
               <a href="#">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg  text-sidebar-primary-foreground">
-                  <img src="/mock/logo-ipsum.svg" className="size-4" />
+                  <img
+                    src="/logo/seni.png"
+                    className={`transition-all `}
+                    alt=""
+                  />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Senior Citizen</span>

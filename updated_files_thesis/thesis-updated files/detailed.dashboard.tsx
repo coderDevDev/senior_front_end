@@ -472,7 +472,7 @@ export default function DetailedDashboard() {
         </Card>
       </div>
 
-      {/* <Card>
+      <Card>
         <CardHeader>
           <CardTitle>Detailed Medicine Inventory</CardTitle>
           <CardDescription>
@@ -531,13 +531,23 @@ export default function DetailedDashboard() {
                     <Badge variant="secondary">{medicine.type}</Badge>
                   </TableCell>
                   <TableCell>${medicine.price.toFixed(2)}</TableCell>
-               
+                  {/* {selectedPharmacy === "All" ? (
+                     
+                    pharmacies.map((pharmacy: Partial<PharmacyFormValues>) => (
+                      <TableCell key={pharmacy.phoneNumber}>
+                        {medicine.stock[pharmacy.name]}
+                      </TableCell>
+                    ))
+                  ) : (
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    <TableCell>{medicine.stock[selectedPharmacy] as any}</TableCell>
+                  )} */}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </CardContent>
-      </Card> */}
+      </Card>
 
       {/* <Card>
         <CardHeader>
