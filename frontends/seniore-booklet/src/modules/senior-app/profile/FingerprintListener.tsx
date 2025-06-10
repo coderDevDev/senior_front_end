@@ -1,10 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import React, { useEffect, useState } from 'react';
+import { io, Socket } from 'socket.io-client';
+
+
+export interface MatchData {
+  id: string;
+  ipaddress: string;
+}
 
 export interface FingerprintData {
   fingerprint_image: string; // base64 PNG
   template: string;
-  quality?: number;          // optional, if your server sends it
+  quality?: number; // optional, if your server sends it
 }
 
 interface FingerprintListenerProps {
@@ -17,24 +23,26 @@ interface FingerprintListenerProps {
 
   /** How many previews to keep in local state (default = 3) */
   maxPrints?: number;
+   onMatch: (data: MatchData) => void;
 }
 
 export const FingerprintListener: React.FC<FingerprintListenerProps> = ({
   onCapture,
   maxPrints = 3,
+  onMatch
 }) => {
   const [prints, setPrints] = useState<FingerprintData[]>([]);
 
   useEffect(() => {
-    const socket: Socket = io("http://localhost:3000");
+    const socket: Socket = io('http://localhost:3000');
 
-    socket.on("connect", () => console.log("Connected to WebSocket server"));
+    socket.on('connect', () => console.log('Connected to WebSocket server'));
 
-    socket.on("fingerprint_data", (data: FingerprintData) => {
-      console.log("Fingerprint Data Received:", data);
+    socket.on('fingerprint_data', (data: FingerprintData) => {
+      console.log('Fingerprint Data Received:', data);
       onCapture?.(data); // bubble up first
 
-      setPrints((prev) => {
+      setPrints(prev => {
         if (prev.length >= maxPrints) {
           // local preview limit reached – ignore extra images
           return prev;
@@ -43,8 +51,16 @@ export const FingerprintListener: React.FC<FingerprintListenerProps> = ({
       });
     });
 
+
+    socket.on('match_fingerprint', (data) => {
+      console.log('🔍 match_fingerprint', data);
+      onMatch(data);
+    });
+
+    
+
     return () => {
-      socket.off("fingerprint_data");
+      socket.off('fingerprint_data');
       socket.disconnect();
     };
   }, [onCapture, maxPrints]);
@@ -64,5 +80,3 @@ export const FingerprintListener: React.FC<FingerprintListenerProps> = ({
     </div>
   );
 };
-
-

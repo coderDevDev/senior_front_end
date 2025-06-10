@@ -119,8 +119,7 @@ const useDashboardStats = () => {
       // Get medicine orders
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
-        .select(
-          `
+        .select(`
           id,
           total_amount,
           created_at,
@@ -128,17 +127,16 @@ const useDashboardStats = () => {
             quantity,
             medicine_id
           )
-        `
-        )
+        `)
         .order('created_at', { ascending: false })
         .limit(30);
 
       if (ordersError) throw ordersError;
 
       // Get pharmacy data with transaction counts
-      const { data: pharmacies, error: pharmacyError } = await supabase.from(
-        'pharmacy'
-      ).select(`
+      const { data: pharmacies, error: pharmacyError } = await supabase
+      .from('pharmacy')
+      .select(`
           pharmacy_id,
           name,
           status,
@@ -285,6 +283,8 @@ export default function BookletDashboard() {
           value={stats?.recentOrders.length.toString() || '0'}
           trend={0}
         />
+
+        {/* CONNECT REFILL REMINDERS TO DATABASE */}
         <StatCard
           icon={<Clock className="h-4 w-4" />}
           title="Refill Reminders"
@@ -300,7 +300,7 @@ export default function BookletDashboard() {
             <CardDescription>Monthly order trends and totals</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={orderChartConfig} className="h-[300px]">
+            <ChartContainer config={orderChartConfig} className="h-[300px] w-full px-4">
               <AreaChart data={medicineAvailabilityData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />

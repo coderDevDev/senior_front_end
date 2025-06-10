@@ -1,18 +1,10 @@
-
-import React, { useCallback, useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  CheckCircle,
-  Fingerprint,
-  Loader2,
-  User,
-  XCircle,
-} from "lucide-react";
-import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { FingerprintListener } from "./FingerprintListener";
-import { FingerprintService } from "../senior-app/profile/fingerprint-sdk"; 
-
+import React, { useCallback, useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, Fingerprint, Loader2, User, XCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { FingerprintListener } from './FingerprintListener';
+import { FingerprintService } from '../senior-app/profile/fingerprint-sdk';
 
 interface SeniorInfo {
   id: string;
@@ -30,25 +22,22 @@ interface FingerprintVerificationProps {
 }
 
 type VerificationState =
-  | "initial"
-  | "listening" 
-  | "verifying" 
-  | "success"
-  | "failed";
+  | 'initial'
+  | 'listening'
+  | 'verifying'
+  | 'success'
+  | 'failed';
 
 const FingerprintVerification: React.FC<FingerprintVerificationProps> = ({
   onVerificationComplete,
-  onCancel,
+  onCancel
 }) => {
-
-  const [state, setState] = useState<VerificationState>("initial");
+  const [state, setState] = useState<VerificationState>('initial');
   const [error, setError] = useState<string | null>(null);
   const [senior, setSenior] = useState<SeniorInfo | null>(null);
 
-
   const fingerprintService = useMemo(() => new FingerprintService(), []);
   const queryClient = useQueryClient();
-
 
   const verifyMutation = useMutation<
     SeniorInfo,
@@ -56,52 +45,47 @@ const FingerprintVerification: React.FC<FingerprintVerificationProps> = ({
     { id: string; ip: string }
   >({
     mutationFn: async ({ id }) => {
-
       const info = await fingerprintService.getSeniorById(id);
-      if (!info) throw new Error("Senior not found in records");
+      if (!info) throw new Error('Senior not found in records');
       return info;
     },
-    onSuccess: (info) => {
+    onSuccess: info => {
       setSenior(info);
-      setState("success");
+      setState('success');
 
-      const name = `${info.firstName ?? ""} ${info.lastName ?? ""}`.trim();
-      toast.success(`${name || "Senior citizen"} verified successfully!`);
+      const name = `${info.firstName ?? ''} ${info.lastName ?? ''}`.trim();
+      toast.success(`${name || 'Senior citizen'} verified successfully!`);
 
-      queryClient.invalidateQueries({ queryKey: ["senior", info.id] });
+      queryClient.invalidateQueries({ queryKey: ['senior', info.id] });
 
       setTimeout(() => onVerificationComplete(true, info.id), 2000);
     },
-    onError: (err) => {
-      setState("failed");
-      setError(err.message || "Could not identify the senior citizen.");
-      toast.error(err.message || "Verification failed");
-    },
+    onError: err => {
+      setState('failed');
+      setError(err.message || 'Could not identify the senior citizen.');
+      toast.error(err.message || 'Verification failed');
+    }
   });
 
- 
   const handleMatch = useCallback(
     ({ id, ipaddress }: { id: string; ipaddress: string }) => {
-      console.log("🔍 match_fingerprint received", { id, ipaddress });
-      setState("verifying");
+      console.log('🔍 match_fingerprint received', { id, ipaddress });
+      setState('verifying');
       verifyMutation.mutate({ id, ip: ipaddress });
     },
     [verifyMutation]
   );
 
-
   const reset = () => {
-    setState("initial");
+    setState('initial');
     setError(null);
     setSenior(null);
     verifyMutation.reset();
   };
 
-
   const renderBody = () => {
     switch (state) {
-
-      case "initial":
+      case 'initial':
         return (
           <div className="text-center p-6">
             <Fingerprint className="w-12 h-12 mx-auto mb-4 text-primary" />
@@ -112,14 +96,13 @@ const FingerprintVerification: React.FC<FingerprintVerificationProps> = ({
               Please place the senior citizen's finger on the scanner to
               identify them and continue.
             </p>
-            <Button onClick={() => setState("listening")} className="w-full">
+            <Button onClick={() => setState('listening')} className="w-full">
               Start Scanning
             </Button>
           </div>
         );
 
-
-      case "listening":
+      case 'listening':
         return (
           <div className="text-center p-6">
             {/* Listener renders nothing visible */}
@@ -137,29 +120,25 @@ const FingerprintVerification: React.FC<FingerprintVerificationProps> = ({
                 reset();
                 onCancel();
               }}
-              className="mt-4"
-            >
+              className="mt-4">
               Cancel
             </Button>
           </div>
         );
 
-
-      case "verifying":
+      case 'verifying':
         return (
           <div className="text-center p-6">
             <Loader2 className="w-12 h-12 mx-auto mb-4 text-primary animate-spin" />
             <h3 className="text-lg font-medium mb-2">
               Identifying Senior Citizen
             </h3>
-            <p className="text-gray-500">
-              Please wait while we fetch records…
-            </p>
+            <p className="text-gray-500">Please wait while we fetch records…</p>
           </div>
         );
 
       /* ————————————————— success ————————————————— */
-      case "success":
+      case 'success':
         return (
           <div className="text-center p-6">
             <CheckCircle className="w-12 h-12 mx-auto mb-4 text-green-500" />
@@ -171,14 +150,15 @@ const FingerprintVerification: React.FC<FingerprintVerificationProps> = ({
                 <div className="flex items-center justify-center mb-2">
                   <User className="w-8 h-8 text-green-600 mr-2" />
                   <h4 className="text-lg font-semibold text-green-800">
-                    {`${senior.firstName ?? ""} ${senior.lastName ?? ""}`.trim() ||
-                      "Senior Citizen"}
+                    {`${senior.firstName ?? ''} ${
+                      senior.lastName ?? ''
+                    }`.trim() || 'Senior Citizen'}
                   </h4>
                 </div>
                 {senior.birthdate && (
                   <p className="text-sm text-green-600">
-                    DOB:{" "}
-                    {new Date(senior.birthdate).toLocaleDateString("en-US")}
+                    DOB:{' '}
+                    {new Date(senior.birthdate).toLocaleDateString('en-US')}
                   </p>
                 )}
                 {senior.address && (
@@ -197,14 +177,14 @@ const FingerprintVerification: React.FC<FingerprintVerificationProps> = ({
           </div>
         );
 
-      case "failed":
+      case 'failed':
         return (
           <div className="text-center p-6">
             <XCircle className="w-12 h-12 mx-auto mb-4 text-red-500" />
             <h3 className="text-lg font-medium mb-2">Identification Failed</h3>
             <p className="text-gray-500 mb-6">
               {error ||
-                "Could not identify the senior citizen. Please try again."}
+                'Could not identify the senior citizen. Please try again.'}
             </p>
             <div className="flex space-x-3">
               <Button variant="outline" onClick={onCancel} className="flex-1">

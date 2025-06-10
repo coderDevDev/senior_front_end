@@ -17,10 +17,7 @@ import { Label } from '@/components/ui/label';
 import { UserNav } from '@/components/user-header';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  AlertCircle,
   Check,
-  ChevronDown,
-  ChevronUp,
   Clock,
   HelpCircle,
   Home,
@@ -35,10 +32,9 @@ import {
   Building2,
   ChevronRight
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useLogout } from '../authentication/hooks/useLogout';
 import { HelpPage } from './help/help.page';
-import useMedicines from './hooks/useMedicines';
 import { ProfilePage } from './profile/profile.page';
 import { TransactionHistoryPage } from './transaction-history/transaction-history.page';
 import { useTab } from '@/context/tab-context';
@@ -65,35 +61,25 @@ interface Pharmacy {
   status: string;
 }
 
-interface Medicine {
-  medicineId: number;
-  name: string;
-  genericName: string;
-  brandName: string;
-  strength: string;
-  dosageForm: string;
-  description: string;
-  medicineImageUrl: string;
-  unitPrice: number;
-  prescriptionRequired: boolean;
-  pharmacies: Pharmacy[];
-}
-
-interface MedicinePharmacy {
-  pharmacy_id: number;
-  medicine_id: number;
-  stock_quantity: number;
-}
-
 export function SeniorCitizenPage() {
   const { activeTab, setActiveTab } = useTab();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [fontSize] = useState('medium');
   const [expandedMedicine, setExpandedMedicine] = useState<number | null>(null);
   const [isDarkMode] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+
+  // Debounce search query to improve performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Setup the useLogout hook
   const {
@@ -110,14 +96,11 @@ export function SeniorCitizenPage() {
     }
   });
 
-  const { data: medicines, isLoading } = useQuery({
-    queryKey: ['medicines', searchQuery, selectedCategory],
+  const { data: medicines } = useQuery({
+    queryKey: ['medicines', debouncedSearchQuery, selectedCategory],
     queryFn: async () => {
-      // Get medicines with their associated pharmacy
-      let query = supabase
-        .from('medicine')
-        .select(
-          `
+      let query = supabase.from('medicine').select(
+        `
           *,
           pharmacy:pharmacy_id (
             pharmacy_id,
@@ -129,12 +112,13 @@ export function SeniorCitizenPage() {
             status
           )
         `
-        )
-        .eq('isActive', true);
+      );
+      // .eq('isActive', true);
 
-      if (searchQuery) {
+      if (debouncedSearchQuery) {
+        // Search in medicine fields only - pharmacy search will be done client-side
         query = query.or(
-          `name.ilike.%${searchQuery}%,genericName.ilike.%${searchQuery}%,brandName.ilike.%${searchQuery}%`
+          `name.ilike.%${debouncedSearchQuery}%,genericName.ilike.%${debouncedSearchQuery}%,brandName.ilike.%${debouncedSearchQuery}%`
         );
       }
 
@@ -146,18 +130,66 @@ export function SeniorCitizenPage() {
       if (error) throw error;
 
       // Transform the data to match our interface
-      const medicinesWithPharmacies = medicinesData.map(medicine => ({
-        ...medicine,
-        pharmacies: medicine.pharmacy ? [medicine.pharmacy] : []
-      }));
+      const medicinesWithPharmacies =
+        medicinesData?.map(medicine => ({
+          ...medicine,
+          pharmacies: medicine.pharmacy ? [medicine.pharmacy] : []
+        })) || [];
 
       return medicinesWithPharmacies;
     }
   });
 
-  const handleShowDetails = (medicine: any) => {
-    setExpandedMedicine(medicine.medicineId);
-  };
+  // Memoize filtered medicines for better performance
+  const filteredMedicines = useMemo(() => {
+    if (!medicines) return [];
+
+    let filtered = medicines;
+
+    // If there's a search query, also filter by pharmacy name
+    if (debouncedSearchQuery) {
+      filtered = medicines.filter(medicine => {
+        const matchesMedicine =
+          medicine.name
+            ?.toLowerCase()
+            .includes(debouncedSearchQuery.toLowerCase()) ||
+          medicine.genericName
+            ?.toLowerCase()
+            .includes(debouncedSearchQuery.toLowerCase()) ||
+          medicine.brandName
+            ?.toLowerCase()
+            .includes(debouncedSearchQuery.toLowerCase());
+
+        const matchesPharmacy = medicine.pharmacies?.some(
+          (pharmacy: Pharmacy) =>
+            pharmacy.name
+              ?.toLowerCase()
+              .includes(debouncedSearchQuery.toLowerCase()) ||
+            pharmacy.address
+              ?.toLowerCase()
+              .includes(debouncedSearchQuery.toLowerCase())
+        );
+
+        return matchesMedicine || matchesPharmacy;
+      });
+    }
+
+    return filtered;
+  }, [medicines, debouncedSearchQuery]);
+
+  // Handle search input change
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchQuery(e.target.value);
+    },
+    []
+  );
+
+  // Handle clear search
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery('');
+    setDebouncedSearchQuery('');
+  }, []);
 
   // Font size classes based on user preference
   const fontSizeClasses = {
@@ -243,7 +275,7 @@ export function SeniorCitizenPage() {
         return (
           <main>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-              {medicines?.map(medicine => (
+              {filteredMedicines.map(medicine => (
                 <Card
                   key={medicine.medicineId}
                   className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] bg-white dark:bg-slate-800/50 backdrop-blur-sm">
@@ -273,9 +305,14 @@ export function SeniorCitizenPage() {
                       <CardTitle className="text-xl mb-2 line-clamp-2">
                         {medicine.name}
                       </CardTitle>
-                      <p className="text-sm text-muted-foreground mb-4">
+                      <p className="text-sm text-muted-foreground mb-2">
                         {medicine.genericName}
                       </p>
+                      {medicine.description && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                          {medicine.description}
+                        </p>
+                      )}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                           <Badge
@@ -302,7 +339,7 @@ export function SeniorCitizenPage() {
                           Available at:
                         </h3>
                         <div className="space-y-2">
-                          {medicine.pharmacies.map(pharmacy => (
+                          {medicine.pharmacies.map((pharmacy: Pharmacy) => (
                             <div
                               key={pharmacy.pharmacy_id}
                               className="relative group/pharmacy bg-secondary/30 p-3 rounded-lg transition-all duration-200 hover:bg-secondary/50">
@@ -366,7 +403,7 @@ export function SeniorCitizenPage() {
                     exit={{ scale: 0.95 }}
                     className="bg-white dark:bg-slate-800 rounded-xl p-4 max-w-lg w-full max-h-[80vh] overflow-y-auto"
                     onClick={e => e.stopPropagation()}>
-                    {medicines.find(
+                    {medicines?.find(
                       (m: any) => m.medicineId === expandedMedicine
                     ) && (
                       <div className="space-y-4">
@@ -468,13 +505,13 @@ export function SeniorCitizenPage() {
     }
   ];
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen">
+  //       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div
@@ -519,18 +556,18 @@ export function SeniorCitizenPage() {
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-6 w-6" />
                   <Input
-                    type="search"
-                    placeholder="Search for medicines..."
+                    type="text"
+                    placeholder="Search for medicines or pharmacies..."
                     className={`pl-14 pr-14  h-16 text-lg rounded-full border-2 border-primary/20 focus:border-primary dark:bg-slate-800 dark:border-blue-900/50 dark:focus:border-blue-500`}
                     value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
+                    onChange={handleSearchChange}
                   />
                   {searchQuery && (
                     <Button
                       variant="ghost"
                       size="icon"
                       className="absolute right-4 top-1/2 transform -translate-y-1/2 h-8 w-8 rounded-full"
-                      onClick={() => setSearchQuery('')}
+                      onClick={handleClearSearch}
                       aria-label="Clear search">
                       <X className="h-5 w-5" />
                     </Button>

@@ -82,20 +82,52 @@ const MedicalHistoryForm = ({
   // Update mutation to handle both create and update
   const { mutate: saveMedicalRecord, isPending } = useMutation({
     mutationFn: async (data: MedicalRecordFormValues) => {
-      const record = {
-        id: recordToEdit?.id, // Will be undefined for new records
-        senior_id: seniorId,
-        ...data,
-        updated_at: new Date().toISOString()
-      };
+      if (!seniorId) {
+        throw new Error('Senior ID is required');
+      }
 
-      const { error } = await supabase.from('medical_records').upsert(record, {
-        onConflict: 'id',
-        ignoreDuplicates: false
-      });
+      console.log('Saving medical record with seniorId:', seniorId);
+      console.log('Form data:', data);
 
-      if (error) throw error;
-      return record;
+      if (recordToEdit) {
+        // Update existing record
+        console.log('Updating existing record:', recordToEdit.id);
+        const { error } = await supabase
+          .from('medical_records')
+          .update({
+            ...data,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', recordToEdit.id);
+
+        if (error) throw error;
+        return { ...recordToEdit, ...data };
+      } else {
+        // Create new record
+        console.log('Creating new record for senior_id:', seniorId);
+        const recordData = {
+          senior_id: seniorId,
+          ...data,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        console.log('Record data to insert:', recordData);
+
+        const { data: newRecord, error } = await supabase
+          .from('medical_records')
+          .insert(recordData)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Insert error:', error);
+          throw error;
+        }
+
+        console.log('Successfully created record:', newRecord);
+        return newRecord;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -110,7 +142,13 @@ const MedicalHistoryForm = ({
     },
     onError: error => {
       console.error('Error saving record:', error);
-      toast.error('Failed to save record');
+      if (error.message.includes('foreign key constraint')) {
+        toast.error(
+          'Unable to save record. Please make sure your profile is properly set up.'
+        );
+      } else {
+        toast.error('Failed to save record');
+      }
     }
   });
 

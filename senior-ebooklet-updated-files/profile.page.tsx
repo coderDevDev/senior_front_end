@@ -4,13 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import useCurrentUser from '@/modules/authentication/hooks/useCurrentUser';
-import {
-  Fingerprint,
-  Loader2,
-  Upload,
-  PlusCircle,
-  FileText
-} from 'lucide-react';
+import { Fingerprint, Loader2, Save, User, X, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FingerprintListener } from './FingerprintListener';
@@ -28,29 +22,12 @@ import {
 } from '@/components/ui/select';
 import { Spinner } from '@/components/spinner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Dialog } from '@/components/ui/dialog';
-import MedicalHistoryForm from '@/modules/senior-citizens/medical-history/medical-history-form';
-import MedicalHistoryList from '@/modules/senior-citizens/medical-history/medical-history-list';
 
 interface RegisterFingerprintParams {
   seniorId: string;
   templateData: string;
   qualityScore: number;
   fingerPosition?: string;
-}
-
-interface FingerprintData {
-  img: string;
-  template: string;
-  quality: number;
-}
-
-interface ExtendedUserMetadata {
-  firstName?: string;
-  lastName?: string;
-  middleName?: string;
-  profileImg?: string;
-  role?: string;
 }
 
 const MAX_PRINTS = 3;
@@ -75,23 +52,20 @@ export function ProfilePage() {
   const { user, isLoading: isUserLoading } = useCurrentUser();
   const fingerprintService = new FingerprintService();
   const [showScanner, setShowScanner] = useState(false);
-  const [prints, setPrints] = useState<FingerprintData[]>([]);
+  const [prints, setPrints] = useState<Fingerprint[]>([]);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
-  const [isAddMedicalRecordOpen, setIsAddMedicalRecordOpen] = useState(false);
 
   // Fetch senior citizen data from senior_citizens table
-  const { data: seniorData } = useQuery({
+  const { data: seniorData, isLoading: isSeniorDataLoading } = useQuery({
     queryKey: ['senior-profile', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      if (!user?.id) return null;
-
       const { data, error } = await supabase
         .from('senior_citizens')
         .select('*')
-        .eq('user_uid', user.id)
+        .eq('user_uid', user?.id)
         .single();
 
       if (error) {
@@ -150,7 +124,7 @@ export function ProfilePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['fingerprintStatus', user?.id]
+        queryKey: ['fingerprintStatus', user?.user_metadata?.id]
       });
       toast.success('Fingerprint registered successfully!');
       setShowScanner(false);
@@ -162,21 +136,21 @@ export function ProfilePage() {
 
   // Set profile image URL if available in user data
   useEffect(() => {
-    const userMetadata = user?.user_metadata as ExtendedUserMetadata;
-    if (userMetadata?.profileImg) {
-      setProfileImageUrl(userMetadata.profileImg);
+    if (user?.user_metadata?.profileImg) {
+      setProfileImageUrl(user.user_metadata.profileImg);
     }
   }, [user]);
 
   // Populate form when user data is available
   useEffect(() => {
     if (!isUserLoading && user && seniorData) {
-      const userMetadata = user.user_metadata as ExtendedUserMetadata;
       // Safely access nested properties with optional chaining
       form.reset({
-        firstName: seniorData?.firstName || userMetadata?.firstName || '',
-        lastName: seniorData?.lastName || userMetadata?.lastName || '',
-        middleName: seniorData?.middleName || userMetadata?.middleName || '',
+        firstName:
+          seniorData?.firstName || user?.user_metadata?.firstName || '',
+        lastName: seniorData?.lastName || user?.user_metadata?.lastName || '',
+        middleName:
+          seniorData?.middleName || user?.user_metadata?.middleName || '',
         email: user?.email || '',
         contactNumber: seniorData?.contactNumber || '',
         address: seniorData?.address || '',
@@ -193,7 +167,7 @@ export function ProfilePage() {
   }, [user, isUserLoading, seniorData, form]);
 
   // Check fingerprint status
-  const { data: fingerprintStatus } = useQuery({
+  const { data: fingerprintStatus, isLoading: isCheckingStatus } = useQuery({
     queryKey: ['fingerprintStatus', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
@@ -233,8 +207,8 @@ export function ProfilePage() {
     onSuccess: () => {
       toast.success('Profile updated successfully');
       // Invalidate and refetch user data
-      queryClient.invalidateQueries({ queryKey: ['auth-user'] });
-      queryClient.invalidateQueries({ queryKey: ['user-role', user?.id] });
+      queryClient.invalidateQueries(['auth-user']);
+      queryClient.invalidateQueries(['user-role', user?.id]);
     },
     onError: error => {
       console.error('Update error:', error);
@@ -307,6 +281,18 @@ export function ProfilePage() {
     }
   };
 
+  const handleScannerData = async (data: any) => {
+    setPrints(prev => [...prev, data]);
+    if (prints.length + 1 >= MAX_PRINTS) {
+      setShowScanner(false);
+      await registerMutation.mutateAsync({
+        seniorId: user!.id,
+        templateData: data.template,
+        qualityScore: data.quality ?? 0
+      });
+    }
+  };
+
   const handleSocketPrint = (data: {
     fingerprint_image: string;
     template: string;
@@ -324,11 +310,11 @@ export function ProfilePage() {
       ];
     });
 
-    if (!registerMutation.isPending && prints.length === 0 && user?.id) {
+    if (!registerMutation.isPending && prints.length === 0) {
       toast.loading('Registering fingerprint...', { id: 'fp' });
       registerMutation
         .mutateAsync({
-          seniorId: user.id,
+          seniorId: user!.user_metadata.id,
           templateData: data.template,
           qualityScore: data.quality ?? 0
         })
@@ -354,8 +340,6 @@ export function ProfilePage() {
     );
   }
 
-  const userMetadata = user?.user_metadata as ExtendedUserMetadata;
-
   return (
     <div className="space-y-6">
       <Card>
@@ -366,8 +350,8 @@ export function ProfilePage() {
               <Avatar className="h-24 w-24">
                 <AvatarImage src={profileImageUrl || ''} />
                 <AvatarFallback>
-                  {userMetadata?.firstName?.[0]}
-                  {userMetadata?.lastName?.[0]}
+                  {user?.user_metadata?.firstName?.[0]}
+                  {user?.user_metadata?.lastName?.[0]}
                 </AvatarFallback>
               </Avatar>
 
@@ -460,10 +444,7 @@ export function ProfilePage() {
                     <Label htmlFor="healthStatus">Health Status</Label>
                     <Select
                       onValueChange={value =>
-                        form.setValue(
-                          'healthStatus',
-                          value as 'excellent' | 'good' | 'fair' | 'poor'
-                        )
+                        form.setValue('healthStatus', value as any)
                       }
                       defaultValue={form.getValues('healthStatus')}>
                       <SelectTrigger>
@@ -527,34 +508,6 @@ export function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Medical History Section */}
-      {seniorData && (
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-3">
-                <FileText className="h-6 w-6 text-primary" />
-                <h2 className="text-xl font-semibold">Medical History</h2>
-              </div>
-              <Button
-                onClick={() => setIsAddMedicalRecordOpen(true)}
-                disabled={!seniorData?.id}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Medical Record
-              </Button>
-            </div>
-
-            {seniorData?.id ? (
-              <MedicalHistoryList seniorId={seniorData.id} />
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>Loading medical history...</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
       {/* Fingerprint Registration Section */}
       <Card>
         <CardContent className="p-6">
@@ -564,10 +517,7 @@ export function ProfilePage() {
 
           {showScanner ? (
             <div className="space-y-4">
-              <FingerprintListener
-                onCapture={handleSocketPrint}
-                onMatch={() => {}} // Required prop, but not used in this context
-              />
+              <FingerprintListener onCapture={handleSocketPrint} />
               <Button onClick={() => setShowScanner(false)} variant="outline">
                 Cancel
               </Button>
@@ -582,6 +532,7 @@ export function ProfilePage() {
                   </p>
                 </div>
               </div>
+              {/* <Button onClick={openScanner}>Register New Fingerprint</Button> */}
             </div>
           ) : (
             <div className="space-y-4">
@@ -625,18 +576,6 @@ export function ProfilePage() {
           )}
         </CardContent>
       </Card>
-
-      {/* Medical History Form Dialog */}
-      {seniorData?.id && (
-        <Dialog
-          open={isAddMedicalRecordOpen}
-          onOpenChange={setIsAddMedicalRecordOpen}>
-          <MedicalHistoryForm
-            seniorId={seniorData.id}
-            onSuccess={() => setIsAddMedicalRecordOpen(false)}
-          />
-        </Dialog>
-      )}
     </div>
   );
 }

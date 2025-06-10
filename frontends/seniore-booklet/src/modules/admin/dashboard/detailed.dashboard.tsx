@@ -372,12 +372,12 @@ export default function DetailedDashboard() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <h3 className="font-semibold">{pharmacy.name}</h3>
-                      <Badge
+                      {/* <Badge
                         variant={
                           pharmacy.status === 'active' ? 'success' : 'secondary'
                         }>
                         {pharmacy.status}
-                      </Badge>
+                      </Badge> */}
                     </div>
                     <p className="text-sm text-muted-foreground flex items-center mt-1">
                       <MapPin className="w-4 h-4 mr-1" /> {pharmacy.address}

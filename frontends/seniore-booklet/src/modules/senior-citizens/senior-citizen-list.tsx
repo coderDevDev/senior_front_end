@@ -17,22 +17,12 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
-import { MoreHorizontalIcon, SearchIcon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
+import { SearchIcon } from 'lucide-react';
 
 import { Spinner } from '@/components/spinner';
 import { Badge } from '@/components/ui/badge';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import useReadSeniorCitizens from './profiles/hooks/useReadSeniorCitizen';
-import { type SeniorCitizenFormValues } from './senior-citizen-content-form.ts';
 import { useArchiveSenior, useUnarchiveSenior } from './hooks/useArchiveSenior';
 import {
   AlertDialog,
@@ -53,19 +43,11 @@ import {
 import UpdateSeniorForm from './update-form.page';
 import { useQuery } from '@tanstack/react-query';
 import MedicalHistoryForm from './medical-history/medical-history-form';
-import { cn } from '@/lib/utils';
 import supabase from '@/shared/supabase';
 import SeniorCitizenContentForm from './senior-citizen-content-form.tsx';
-import { useLocalStorage } from '@/hooks/use-local-storage';
-import { toast } from 'sonner';
 import { Pencil, FileText } from 'lucide-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover';
-import { Command, CommandGroup, CommandItem } from '@/components/ui/command';
 import { ArrowUpCircle, ArchiveIcon } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 type HealthStatusColor = {
   [key in 'excellent' | 'good' | 'fair' | 'poor']: string;
@@ -98,7 +80,6 @@ const HealthStatusBadge = ({
 };
 
 const SeniorCitizenList = () => {
-  const navigate = useNavigate();
   const {
     data: seniorCitizensData,
     isLoading,
@@ -117,11 +98,56 @@ const SeniorCitizenList = () => {
   const [showMedicalModal, setShowMedicalModal] = useState(false);
   const [selectedSeniorForMedical, setSelectedSeniorForMedical] =
     useState<any>(null);
+  const [userProfiles, setUserProfiles] = useState<Record<string, any>>({});
 
   const { archiveSeniorHandler, isPending: isStatusUpdating } =
     useArchiveSenior();
   const { UnarchiveSeniorHandler, isPending: isUnarchiveUpdating } =
     useUnarchiveSenior();
+
+  // Fetch auth user profiles for profile images
+  useEffect(() => {
+    const fetchUserProfiles = async () => {
+      const seniors = seniorCitizensData?.data?.data?.seniorCitizens || [];
+      const userProfiles: Record<string, any> = {};
+
+      // Get all unique user_uids
+      const userUids = [
+        ...new Set(
+          seniors.map((senior: any) => senior.user_uid).filter(Boolean)
+        )
+      ];
+
+      // Fetch auth users in batches
+      for (const userUid of userUids) {
+        try {
+          // Get user from auth
+          const { data: authUser, error } =
+            await supabase.auth.admin.getUserById(userUid);
+
+          if (!error && authUser.user) {
+            userProfiles[userUid] = {
+              profileImg: authUser.user.user_metadata?.profileImg,
+              ...authUser.user.user_metadata
+            };
+          }
+        } catch (error) {
+          console.error(`Error fetching user ${userUid}:`, error);
+          // Fallback: try to get from the senior citizen record
+          const senior = seniors.find((s: any) => s.user_uid === userUid);
+          if (senior?.profileImg) {
+            userProfiles[userUid] = { profileImg: senior.profileImg };
+          }
+        }
+      }
+
+      setUserProfiles(userProfiles);
+    };
+
+    if (seniorCitizensData?.data?.data?.seniorCitizens?.length > 0) {
+      fetchUserProfiles();
+    }
+  }, [seniorCitizensData]);
 
   const { data: medicalRecord } = useQuery({
     queryKey: ['medical_records', selectedSeniorForMedical?.id],
@@ -254,85 +280,91 @@ const SeniorCitizenList = () => {
       );
     }
 
-    return memoSeniorCitizens.map((seniorCitizen: any) => (
-      <TableRow
-        key={seniorCitizen.id}
-        className="transition-colors hover:bg-muted/50">
-        <TableCell className="hidden sm:table-cell">
-          <img
-            alt={`${seniorCitizen.firstName}'s avatar`}
-            className="aspect-square rounded-md object-cover"
-            height="64"
-            src={
-              (seniorCitizen.profileImg as string) ||
-              'https://img.freepik.com/free-psd/3d-rendering-avatar_23-2150833550.jpg?t=st=1747008662~exp=1747012262~hmac=852de5bf124f39120c88535d93be8db4abd7e4861bf60a8478e01b337162d790&w=826'
-            }
-            width="64"
-          />
-        </TableCell>
-        <TableCell>
-          <div className="flex items-center gap-2">
-            <div>
-              <div className="font-medium">
-                {seniorCitizen.firstName} {seniorCitizen.lastName}
-              </div>
-              <div className="text-sm text-muted-foreground flex items-center gap-2">
-                {seniorCitizen.age} years old
-                {medicalRecord &&
-                  seniorCitizen.id === selectedSeniorForMedical?.id && (
-                    <Badge
-                      variant="outline"
-                      className="text-blue-500 border-blue-500">
-                      Has Medical Record
-                    </Badge>
-                  )}
+    return memoSeniorCitizens.map((seniorCitizen: any) => {
+      // Get profile image from auth metadata
+      const userProfile = userProfiles[seniorCitizen.user_uid];
+      const profileImage = userProfile?.profileImg || seniorCitizen.profileImg;
+
+      return (
+        <TableRow
+          key={seniorCitizen.id}
+          className="transition-colors hover:bg-muted/50">
+          <TableCell className="hidden sm:table-cell">
+            <Avatar>
+              <AvatarImage
+                src={profileImage}
+                alt={`${seniorCitizen.firstName}'s profile`}
+              />
+              <AvatarFallback>
+                {seniorCitizen.firstName?.[0] || ''}
+                {seniorCitizen.lastName?.[0] || ''}
+              </AvatarFallback>
+            </Avatar>
+          </TableCell>
+          <TableCell>
+            <div className="flex items-center gap-2">
+              <div>
+                <div className="font-medium">
+                  {seniorCitizen.firstName} {seniorCitizen.lastName}
+                </div>
+                <div className="text-sm text-muted-foreground flex items-center gap-2">
+                  {seniorCitizen.age} years old
+                  {medicalRecord &&
+                    seniorCitizen.id === selectedSeniorForMedical?.id && (
+                      <Badge
+                        variant="outline"
+                        className="text-blue-500 border-blue-500">
+                        Has Medical Record
+                      </Badge>
+                    )}
+                </div>
               </div>
             </div>
-          </div>
-        </TableCell>
-        <TableCell>
-          <HealthStatusBadge status={seniorCitizen.healthStatus} />
-        </TableCell>
-        <TableCell className="hidden md:table-cell">
-          {seniorCitizen.email}
-        </TableCell>
-        <TableCell>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => handleEdit(seniorCitizen)}
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2">
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              onClick={() => handleViewMedical(seniorCitizen)}
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2">
-              <FileText className="h-4 w-4" />
-            </Button>
-            {seniorCitizen.is_archived ? (
+          </TableCell>
+          <TableCell>
+            <HealthStatusBadge status={seniorCitizen.healthStatus} />
+          </TableCell>
+          <TableCell className="hidden md:table-cell">
+            {seniorCitizen.email}
+          </TableCell>
+          <TableCell>
+            <div className="flex items-center gap-2">
               <Button
-                onClick={() => handleStatusClick(seniorCitizen, false)}
+                onClick={() => handleEdit(seniorCitizen)}
                 variant="ghost"
                 size="sm"
-                className="h-8 px-2 text-green-600 hover:text-green-700">
-                <ArrowUpCircle className="h-4 w-4" />
+                className="h-8 px-2">
+                <Pencil className="h-4 w-4" />
               </Button>
-            ) : (
               <Button
-                onClick={() => handleStatusClick(seniorCitizen, true)}
+                onClick={() => handleViewMedical(seniorCitizen)}
                 variant="ghost"
                 size="sm"
-                className="h-8 px-2 text-red-600 hover:text-red-700">
-                <ArchiveIcon className="h-4 w-4" />
+                className="h-8 px-2">
+                <FileText className="h-4 w-4" />
               </Button>
-            )}
-          </div>
-        </TableCell>
-      </TableRow>
-    ));
+              {seniorCitizen.is_archived ? (
+                <Button
+                  onClick={() => handleStatusClick(seniorCitizen, false)}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-green-600 hover:text-green-700">
+                  <ArrowUpCircle className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => handleStatusClick(seniorCitizen, true)}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-red-600 hover:text-red-700">
+                  <ArchiveIcon className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </TableCell>
+        </TableRow>
+      );
+    });
   };
 
   return (
@@ -395,6 +427,7 @@ const SeniorCitizenList = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Picture</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Health Status</TableHead>
                 <TableHead className="hidden md:table-cell">Email</TableHead>
@@ -506,10 +539,7 @@ const SeniorCitizenList = () => {
           </DialogHeader>
           <div className="overflow-y-auto px-6 py-4 max-h-[calc(90vh-8rem)]">
             {selectedSenior && (
-              <UpdateSeniorForm
-                seniorDataForm={selectedSenior}
-                onSuccess={handleModalClose}
-              />
+              <UpdateSeniorForm seniorDataForm={selectedSenior} />
             )}
           </div>
         </DialogContent>
@@ -523,7 +553,7 @@ const SeniorCitizenList = () => {
           <MedicalHistoryForm
             seniorId={selectedSeniorForMedical?.id}
             recordToEdit={medicalRecord}
-            onClose={handleMedicalModalClose}
+            onSuccess={handleMedicalModalClose}
           />
         </DialogContent>
       </Dialog>

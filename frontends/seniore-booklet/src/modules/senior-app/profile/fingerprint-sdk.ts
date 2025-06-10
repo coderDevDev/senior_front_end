@@ -167,7 +167,7 @@ export class FingerprintService {
         .select('id')
         .eq('user_uid', seniorId)
         .single();
-
+      console.log({senior})
       if (seniorError || !senior) {
         console.error('FingerprintService: Senior not found:', seniorError?.message);
         return false;

@@ -468,13 +468,13 @@ export function SeniorCitizenPage() {
     }
   ];
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen">
+  //       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div
@@ -519,7 +519,7 @@ export function SeniorCitizenPage() {
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-6 w-6" />
                   <Input
-                    type="search"
+                    type="text" // <-- change from "search" to "text"
                     placeholder="Search for medicines..."
                     className={`pl-14 pr-14  h-16 text-lg rounded-full border-2 border-primary/20 focus:border-primary dark:bg-slate-800 dark:border-blue-900/50 dark:focus:border-blue-500`}
                     value={searchQuery}

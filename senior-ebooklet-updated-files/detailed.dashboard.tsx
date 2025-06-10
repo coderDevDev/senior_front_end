@@ -7,23 +7,21 @@ import {
   CardTitle
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import // Select,
+// SelectContent,
+// SelectItem,
+// SelectTrigger,
+// SelectValue
+'@/components/ui/select';
+import // Table,
+// TableBody,
+// TableCell,
+// TableHead,
+// TableHeader,
+// TableRow
+'@/components/ui/table';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table';
-import {
-  Calendar,
+  // Calendar,
   Clock,
   MapPin,
   Mail,
@@ -47,7 +45,7 @@ import supabase from '@/shared/supabase';
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
+  // PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -374,12 +372,12 @@ export default function DetailedDashboard() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <h3 className="font-semibold">{pharmacy.name}</h3>
-                      <Badge
+                      {/* <Badge
                         variant={
                           pharmacy.status === 'active' ? 'success' : 'secondary'
                         }>
                         {pharmacy.status}
-                      </Badge>
+                      </Badge> */}
                     </div>
                     <p className="text-sm text-muted-foreground flex items-center mt-1">
                       <MapPin className="w-4 h-4 mr-1" /> {pharmacy.address}
@@ -472,7 +470,7 @@ export default function DetailedDashboard() {
         </Card>
       </div>
 
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle>Detailed Medicine Inventory</CardTitle>
           <CardDescription>
@@ -531,23 +529,13 @@ export default function DetailedDashboard() {
                     <Badge variant="secondary">{medicine.type}</Badge>
                   </TableCell>
                   <TableCell>${medicine.price.toFixed(2)}</TableCell>
-                  {/* {selectedPharmacy === "All" ? (
-                     
-                    pharmacies.map((pharmacy: Partial<PharmacyFormValues>) => (
-                      <TableCell key={pharmacy.phoneNumber}>
-                        {medicine.stock[pharmacy.name]}
-                      </TableCell>
-                    ))
-                  ) : (
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    <TableCell>{medicine.stock[selectedPharmacy] as any}</TableCell>
-                  )} */}
+               
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* <Card>
         <CardHeader>
