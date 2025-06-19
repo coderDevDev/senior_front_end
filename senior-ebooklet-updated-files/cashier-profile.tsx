@@ -106,8 +106,9 @@ export const CashierProfile: React.FC<userProfileProps> = ({
       </button>
 
       {showNavMenu && (
-        <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg py-2 z-20 border border-gray-100"
-        style={{ minWidth: 240 }}>
+        <div
+          className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg py-2 z-20 border border-gray-100"
+          style={{ minWidth: 240 }}>
           <div className="px-4 py-2 border-b border-gray-100">
             <div className="flex items-center">
               <div className="mr-3 relative">
@@ -183,7 +184,7 @@ export const CashierProfile: React.FC<userProfileProps> = ({
               setShowNavMenu(false);
             }}>
             <ShoppingBag className="w-4 h-4 mr-3 text-gray-400" />
-            New Order
+            New Orders
           </button>
 
           <button

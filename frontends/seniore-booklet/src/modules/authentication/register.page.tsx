@@ -27,6 +27,7 @@ import {
   DialogTrigger
 } from '@/components/ui/dialog';
 import { Mail, Phone } from 'lucide-react';
+import bcrypt from 'bcryptjs';
 
 import supabase from '@/shared/supabase';
 
@@ -78,6 +79,10 @@ const RegisterPage = () => {
   const onSubmit = async (data: RegistrationFormInputs) => {
     setIsSubmitting(true);
     try {
+      // Hash the password before storing
+      const saltRounds = 12;
+      const hashedPassword = await bcrypt.hash(data.password, saltRounds);
+
       // First, create auth user with email and password, including metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
@@ -100,13 +105,14 @@ const RegisterPage = () => {
         data.birthDay
       );
 
-      // Insert into sb_users table
+      // Insert into sb_users table with hashed password
       const { error: userError } = await supabase.from('sb_users').insert({
         firstName: data.firstName,
         lastName: data.lastName,
         middleName: data.middleInitial,
         email: data.email,
-        password: data.password, // Note: In production, hash this password
+        password: hashedPassword, // Store hashed password
+        confirmPassword: hashedPassword,
         userRole: 'senior_citizen',
         user_uid: authData.user?.id,
         address: data.address,
@@ -119,7 +125,7 @@ const RegisterPage = () => {
 
       if (userError) throw userError;
 
-      // Insert into senior_citizens table
+      // Insert into senior_citizens table with hashed password
       const { error: seniorError } = await supabase
         .from('senior_citizens')
         .insert({
@@ -127,7 +133,7 @@ const RegisterPage = () => {
           lastName: data.lastName,
           middleName: data.middleInitial,
           email: data.email,
-          password: data.password, // Note: In production, hash this password
+          password: hashedPassword, // Store hashed password
           userRole: 'senior_citizen',
           user_uid: authData.user?.id,
           address: data.address,
@@ -145,37 +151,14 @@ const RegisterPage = () => {
 
       toast.success('Registration successful! Please verify your email.');
       navigate('/login');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Registration error:', error);
-      toast.error(error.message || 'Registration failed');
+      const errorMessage =
+        error instanceof Error ? error.message : 'Registration failed';
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Add validation for birth date fields
-  const validateBirthDate = (year: string, month: string, day: string) => {
-    if (!year || !month || !day) return 'Birth date is required';
-
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    const now = new Date();
-
-    // Check if it's a valid date
-    if (date.toString() === 'Invalid Date') return 'Invalid birth date';
-
-    // Check if date is in the past
-    if (date > now) return 'Birth date cannot be in the future';
-
-    // Check if age is at least 60 (for senior citizens)
-    const age = now.getFullYear() - date.getFullYear();
-    const monthDiff = now.getMonth() - date.getMonth();
-    const dayDiff = now.getDate() - date.getDate();
-    const finalAge =
-      monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
-
-    if (finalAge < 60) return 'Must be at least 60 years old to register';
-
-    return true;
   };
 
   // Generate years from 1900 to current year
@@ -464,8 +447,15 @@ const RegisterPage = () => {
                                 .from('sb_users')
                                 .select('email')
                                 .eq('email', value)
-                                .single();
+                                .maybeSingle();
 
+                              // If there's an error (other than no rows found), throw it
+                              if (error && error.code !== 'PGRST116') {
+                                console.error('Email validation error:', error);
+                                return 'Error checking email availability';
+                              }
+
+                              // If data exists, email is already taken
                               if (data) return 'Email already exists';
                               return true;
                             }

@@ -144,7 +144,10 @@ const SeniorCitizenList = () => {
       setUserProfiles(userProfiles);
     };
 
-    if (seniorCitizensData?.data?.data?.seniorCitizens?.length > 0) {
+    if (
+      seniorCitizensData?.data?.data?.seniorCitizens &&
+      seniorCitizensData.data.data.seniorCitizens.length > 0
+    ) {
       fetchUserProfiles();
     }
   }, [seniorCitizensData]);

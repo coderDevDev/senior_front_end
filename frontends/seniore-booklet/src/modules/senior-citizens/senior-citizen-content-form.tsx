@@ -1,17 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetTrigger
-} from '@/components/ui/sheet';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { PlusCircleIcon } from 'lucide-react';
 import { useState } from 'react';
-import { SubmitHandler, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useAddSeniorCitizen } from './profiles/hooks/useAddSeniorCitizen';
 import SeniorCitizenForm from './senior-citizen-form';
 import {
   Dialog,
@@ -21,10 +13,8 @@ import {
   DialogTrigger
 } from '@/components/ui/dialog';
 import { PlusIcon } from 'lucide-react';
-import {
-  seniorCitizenSchema,
-  type SeniorCitizenFormValues as ImportedSeniorCitizenFormValues
-} from './senior-citizen-content-form.ts';
+import { seniorCitizenSchema } from './senior-citizen-content-form.ts';
+import bcrypt from 'bcryptjs';
 
 import supabase from '@/shared/supabase.ts';
 import { toast } from 'sonner';
@@ -63,11 +53,14 @@ const SeniorCitizenContentForm = () => {
     }
   });
 
-  const { createUser } = useAddSeniorCitizen();
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const onSubmit = async (data: SeniorFormValues) => {
     try {
+      // Hash the password before storing
+      const saltRounds = 12;
+      const hashedPassword = await bcrypt.hash(data.password, saltRounds);
+
       // First create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
@@ -83,13 +76,13 @@ const SeniorCitizenContentForm = () => {
 
       if (authError) throw authError;
 
-      // Insert into sb_users table
+      // Insert into sb_users table with hashed password
       const { error: userError } = await supabase.from('sb_users').insert({
         firstName: data.firstName,
         lastName: data.lastName,
         middleName: data.middleName,
         email: data.email,
-        password: data.password,
+        password: hashedPassword, // Store hashed password
         userRole: 'senior_citizen',
         user_uid: authData.user?.id,
         contactNo: data.contactNumber,
@@ -99,7 +92,7 @@ const SeniorCitizenContentForm = () => {
 
       if (userError) throw userError;
 
-      // Insert into senior_citizens table
+      // Insert into senior_citizens table with hashed password
       const { error: seniorError } = await supabase
         .from('senior_citizens')
         .insert({
@@ -107,7 +100,7 @@ const SeniorCitizenContentForm = () => {
           lastName: data.lastName,
           middleName: data.middleName,
           email: data.email,
-          password: data.password,
+          password: hashedPassword, // Store hashed password
           userRole: 'senior_citizen',
           user_uid: authData.user?.id,
           contactNumber: data.contactNumber,

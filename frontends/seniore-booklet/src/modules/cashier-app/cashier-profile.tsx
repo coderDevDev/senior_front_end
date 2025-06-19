@@ -1,6 +1,13 @@
-import { ChevronDown, Clock, LogOut, ShoppingBag, User } from 'lucide-react';
+import {
+  ChevronDown,
+  Clock,
+  LogOut,
+  Pill,
+  ShoppingBag,
+  User
+} from 'lucide-react';
 import IUser from '../admin/users/user.interface';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import supabase from '@/shared/supabase';
@@ -106,8 +113,9 @@ export const CashierProfile: React.FC<userProfileProps> = ({
       </button>
 
       {showNavMenu && (
-        <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg py-2 z-20 border border-gray-100"
-        style={{ minWidth: 240 }}>
+        <div
+          className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg py-2 z-20 border border-gray-100"
+          style={{ minWidth: 240 }}>
           <div className="px-4 py-2 border-b border-gray-100">
             <div className="flex items-center">
               <div className="mr-3 relative">
@@ -175,6 +183,16 @@ export const CashierProfile: React.FC<userProfileProps> = ({
               ))}
             </div>
           </div>
+
+          <button
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+            onClick={() => {
+              setActiveTab('medicines');
+              setShowNavMenu(false);
+            }}>
+            <Pill className="w-4 h-4 mr-3 text-gray-400" />
+            Medicine Management
+          </button>
 
           <button
             className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"

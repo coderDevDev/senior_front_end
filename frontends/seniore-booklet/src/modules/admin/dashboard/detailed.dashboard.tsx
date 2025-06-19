@@ -268,7 +268,7 @@ const useDetailedDashboardData = () => {
   });
 };
 
-export default function DetailedDashboard() {
+export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
   const [selectedPharmacy, setSelectedPharmacy] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const { data: dashboardData, isLoading, error } = useDetailedDashboardData();
@@ -325,28 +325,68 @@ export default function DetailedDashboard() {
 
   return (
     <div className="flex flex-col gap-6 p-8">
-      <h1 className="text-3xl font-bold">Detailed Medicine Dashboard</h1>
+      {/* <h1 className="text-3xl font-bold">Detailed Medicine Dashboard</h1> */}
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Pharmacy Directory</CardTitle>
-            <CardDescription>
-              Contact information for local pharmacies
-            </CardDescription>
-            <div className="flex items-center space-x-4 mt-4">
-              <div className="flex-1">
-                <Input
-                  placeholder="Search pharmacies..."
-                  value={filters.search}
-                  onChange={e =>
-                    setFilters(prev => ({ ...prev, search: e.target.value }))
-                  }
-                  className="w-full"
-                  icon={<Search className="w-4 h-4" />}
-                />
-              </div>
-              {/* <Select
+      {isSeniorCitizenDataOnly ? (
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Senior Citizen Medicine Statistics</CardTitle>
+              <CardDescription>
+                Average medicine consumption and costs by age group
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={dashboardData.seniorData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="age" />
+                  <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
+                  <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
+                  <Tooltip />
+                  <Legend />
+                  <Bar
+                    yAxisId="left"
+                    dataKey="medicinesPerMonth"
+                    fill="#8884d8"
+                    name="Medicines per Month"
+                  />
+                  <Bar
+                    yAxisId="right"
+                    dataKey="averageCost"
+                    fill="#82ca9d"
+                    name="Average Cost (₱)"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Pharmacy Directory</CardTitle>
+                <CardDescription>
+                  Contact information for local pharmacies
+                </CardDescription>
+                <div className="flex items-center space-x-4 mt-4">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Search pharmacies..."
+                      value={filters.search}
+                      onChange={e =>
+                        setFilters(prev => ({
+                          ...prev,
+                          search: e.target.value
+                        }))
+                      }
+                      className="w-full"
+                      icon={<Search className="w-4 h-4" />}
+                    />
+                  </div>
+                  {/* <Select
                 value={filters.status}
                 onValueChange={(value: 'all' | 'active' | 'inactive') =>
                   setFilters(prev => ({ ...prev, status: value }))
@@ -360,115 +400,124 @@ export default function DetailedDashboard() {
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select> */}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {paginatedPharmacies.map(pharmacy => (
-                <div
-                  key={pharmacy.id}
-                  className="flex items-start space-x-4 p-4 rounded-lg bg-muted">
-                  <Pill className="w-6 h-6 mt-1 text-primary" />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold">{pharmacy.name}</h3>
-                      {/* <Badge
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {paginatedPharmacies.map(pharmacy => (
+                    <div
+                      key={pharmacy.id}
+                      className="flex items-start space-x-4 p-4 rounded-lg bg-muted">
+                      <Pill className="w-6 h-6 mt-1 text-primary" />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold">{pharmacy.name}</h3>
+                          {/* <Badge
                         variant={
                           pharmacy.status === 'active' ? 'success' : 'secondary'
                         }>
                         {pharmacy.status}
                       </Badge> */}
+                        </div>
+                        <p className="text-sm text-muted-foreground flex items-center mt-1">
+                          <MapPin className="w-4 h-4 mr-1" /> {pharmacy.address}
+                        </p>
+                        <p className="text-sm text-muted-foreground flex items-center mt-1">
+                          <Phone className="w-4 h-4 mr-1" /> {pharmacy.phone}
+                        </p>
+                        <p className="text-sm text-muted-foreground flex items-center mt-1">
+                          <Clock className="w-4 h-4 mr-1" /> {pharmacy.hours}
+                        </p>
+                        {pharmacy.email && (
+                          <p className="text-sm text-muted-foreground flex items-center mt-1">
+                            <Mail className="w-4 h-4 mr-1" /> {pharmacy.email}
+                          </p>
+                        )}
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Total Transactions: {pharmacy.transactionCount}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground flex items-center mt-1">
-                      <MapPin className="w-4 h-4 mr-1" /> {pharmacy.address}
-                    </p>
-                    <p className="text-sm text-muted-foreground flex items-center mt-1">
-                      <Phone className="w-4 h-4 mr-1" /> {pharmacy.phone}
-                    </p>
-                    <p className="text-sm text-muted-foreground flex items-center mt-1">
-                      <Clock className="w-4 h-4 mr-1" /> {pharmacy.hours}
-                    </p>
-                    {pharmacy.email && (
-                      <p className="text-sm text-muted-foreground flex items-center mt-1">
-                        <Mail className="w-4 h-4 mr-1" /> {pharmacy.email}
-                      </p>
-                    )}
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Total Transactions: {pharmacy.transactionCount}
-                    </p>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            {totalPages > 1 && (
-              <div className="mt-4">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                      />
-                    </PaginationItem>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                      page => (
-                        <PaginationItem key={page}>
-                          <PaginationLink
-                            onClick={() => setCurrentPage(page)}
-                            isActive={currentPage === page}>
-                            {page}
-                          </PaginationLink>
+                {totalPages > 1 && (
+                  <div className="mt-4">
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious
+                            onClick={() =>
+                              setCurrentPage(p => Math.max(1, p - 1))
+                            }
+                            disabled={currentPage === 1}
+                          />
                         </PaginationItem>
-                      )
-                    )}
-                    <PaginationItem>
-                      <PaginationNext
-                        onClick={() =>
-                          setCurrentPage(p => Math.min(totalPages, p + 1))
-                        }
-                        disabled={currentPage === totalPages}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                        {Array.from(
+                          { length: totalPages },
+                          (_, i) => i + 1
+                        ).map(page => (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(page)}
+                              isActive={currentPage === page}>
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                          <PaginationNext
+                            onClick={() =>
+                              setCurrentPage(p => Math.min(totalPages, p + 1))
+                            }
+                            disabled={currentPage === totalPages}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Senior Citizen Medicine Statistics</CardTitle>
-            <CardDescription>
-              Average medicine consumption and costs by age group
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={dashboardData.seniorData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="age" />
-                <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
-                <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
-                <Tooltip />
-                <Legend />
-                <Bar
-                  yAxisId="left"
-                  dataKey="medicinesPerMonth"
-                  fill="#8884d8"
-                  name="Medicines per Month"
-                />
-                <Bar
-                  yAxisId="right"
-                  dataKey="averageCost"
-                  fill="#82ca9d"
-                  name="Average Cost ($)"
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Senior Citizen Medicine Statistics</CardTitle>
+                <CardDescription>
+                  Average medicine consumption and costs by age group
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={dashboardData.seniorData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="age" />
+                    <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      stroke="#82ca9d"
+                    />
+                    <Tooltip />
+                    <Legend />
+                    <Bar
+                      yAxisId="left"
+                      dataKey="medicinesPerMonth"
+                      fill="#8884d8"
+                      name="Medicines per Month"
+                    />
+                    <Bar
+                      yAxisId="right"
+                      dataKey="averageCost"
+                      fill="#82ca9d"
+                      name="Average Cost ($)"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
 
       {/* <Card>
         <CardHeader>

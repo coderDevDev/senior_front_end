@@ -26,14 +26,21 @@ export default {
           .from('sb_users')
           .select('*')
           .eq('user_uid', data.user.id)
-          .single();
+          .maybeSingle();
 
-        if (profileError)
+        if (profileError) {
+          console.error('Profile fetch error:', profileError);
           throw `[ProfileErrorService]: ${JSON.stringify(
             profileError,
             null,
             0
           )}`;
+        }
+
+        // If userData doesn't exist, the user might not be properly registered
+        if (!userData) {
+          throw `[ProfileErrorService]: User profile not found in database`;
+        }
 
         // Update auth metadata with user role and other details
         const { error: updateError } = await supabase.auth.updateUser({

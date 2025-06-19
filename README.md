@@ -49,54 +49,75 @@ PW: &Bookletsenior2002
 
 
 
-Senior citizen page issues 
+Admin Side
+1. Forget Password, 'di po pala siya nagana. [not your fault po, akala po naming gumagana na siya before]
 
-1. Ung transaction from cashier dapat connected sa transaction ng senior citizen 
 
-2. After successful registrstion, ung user interface is dapat successful nakalagay
 
-3. Profile update not working
 
-4. Profile pic upload if kaya pa
-
-Admin Page Issues 
-
-1. Dashboard
-(palagyan din ng logo for the senior citizen E-booklet system) 
-
-Question:
-- What is medicine stock levels?
-- Where do refill reminders come from? 
-
-2. Dashboard (detailed medicine dashboard) 
-
-- Is senior citizen medicine statistics connected to the database? - YES
-- remove detailed medicine inventory OR just keep one pharmacy
-- pharmacy directory, why puro inactive ung pharmacy
-
-3. User page list - remove senior citizen users, ung admins/cashier ng sb_users is dapat makita 
-
-4. Senior citizen list - edit and archive should work, total senior citizens is dapat makita 
-
-5. Pharmacy Management - dapat kita lahat ng pharmacy, dapat gumana ang add and archive, pwede mag add ng pictures 
-
-6. Medicine Management - dapat gumana ang archive  - DONE
-
-7. Medicine Report - DONE
-
-8. Users report -  DONE
+Supabase
+1. yung mga passwords po is nakikita pa rin po don for both user and senior, possible po kayang gawing hash siya but still makakapasok pa rin sa system?
 
 
 
 
 
+2. Refill reminders; sa cashier side rin po siya, given for inventory nga po yung reminder na yon though, pwede rin na tanggalin yon sa side ng admin and more on sa cashier side lang
 
 
-9. Pharmacy report - ung active is 0, - DONE
-
-10. Senior citizen report - remove verified user interface 
+3. Senior Citizen Medicine Statistics po is 'di pa po gumagana
 
 
+4. From the user; senior citizen, yung medical record should be seen sa senior citizen side profile 
 
-Cashier page 
-1. If kaya ilagay ung medicine management (optional)
+
+4.1. Profile pic of the senior should be seen from this side  
+
+
+
+
+
+Cashier Side
+
+1. Kita yung stores na available, number of medicines available for inventory, medicine stock levels - Detailed Medicine Dashboard which is nasa cashier side rin po 
+2. Medicine management should be seen on the Cashier 
+3. History [Transactions] Search filter
+   3.1 By Medicines
+   3.2 By Senior Citizens
+
+[possible po kaya yung para bang for a specific acc, etong mga medicines lang po makikita niya na for example, TGP, TGP medicines lang or for watsons, watsons lang.
+parang magulo po kasi yung transaction esp nung nag pa eval kami sa mga pharmacists; can be explained further pa po kung magulo] 
+
+
+
+
+
+
+
+Senior Citizen Side
+
+1. Search bar should be smooth - Nagstop siya every time may itype  - DONE 
+2. Pharmacy can be searched too, makikita yung mga medicine available sa pharmacy na yon - DONE
+3. Yung sa home, makikita yung description of each medicine since if you check sa cashier, there's a description na makikita which should've been sa side rin ng senior side - DONE
+4. Medical record would be included sa senior citizen profile  - DONE
+
+4.1. Profile pic of the senior should be seen sa admin side rin - DONE
+
+
+
+
+
+
+
+Fingerprint Side 
+1. Maintegrate sa system or Pop-up sa mismong website (ang sabi kasi ng adviser naming for this is mas better raw kung hindi na siya kailangan iclick pa since magkaibang software, then he suggested na baka pwede raw na pop up na lang na pag clinick yung button is mag pop up siya instead na iclick pa yung form).
+
+
+
+
+
+Deployment of the system 
+Yung napagusapan po before na yun nga ideploy pa rin po siya after
+
+
+Kuya @Dex Miranda, eto po pala yung overall. Pa-disregard po nung isa.
