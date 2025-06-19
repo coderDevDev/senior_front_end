@@ -1,0 +1,8 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\myfingerprint]
+@="URL:MyFingerprint Protocol"
+"URL Protocol"=""
+
+[HKEY_CLASSES_ROOT\myfingerprint\shell\open\command]
+@="\"C:\\DexDev\\my_Small_projects\\2025\\seniorebookletsystem\\DigitalPersonaBridge\\DigitalPersonaBridge\\bin\\Debug\\DigitalPersonaBridge.exe\" \"%1\""

@@ -341,8 +341,10 @@ export function ProfilePage() {
   };
 
   const openScanner = () => {
+    console.log('openScanner');
     setPrints([]);
     setShowScanner(true);
+    window.location.href = 'myfingerprint://start';
   };
 
   // Loading state
@@ -604,7 +606,7 @@ export function ProfilePage() {
                 ) : (
                   <>
                     <Fingerprint className="mr-2 h-4 w-4" />
-                    Register Fingerprint
+                    Register Fingerprintss
                   </>
                 )}
               </Button>
