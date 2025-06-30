@@ -25,15 +25,26 @@ import { format } from 'date-fns';
 import supabase from '@/shared/supabase';
 import MedicalHistoryForm from './medical-history-form';
 import { Spinner } from '@/components/spinner';
+import useCurrentUser from '@/modules/authentication/hooks/useCurrentUser';
 
 interface MedicalHistoryListProps {
   seniorId?: string;
 }
 
+type MedicalRecord = {
+  id: string;
+  diagnosis: string;
+  date: string;
+  treatment: string;
+  notes?: string;
+};
+
 const MedicalHistoryList = ({ seniorId }: MedicalHistoryListProps) => {
-  const [editRecord, setEditRecord] = useState<any>(null);
-  const [deleteRecord, setDeleteRecord] = useState<any>(null);
+  const [editRecord, setEditRecord] = useState<MedicalRecord | null>(null);
+  const [deleteRecord, setDeleteRecord] = useState<MedicalRecord | null>(null);
   const queryClient = useQueryClient();
+  const { user } = useCurrentUser();
+  const userRole = user?.user_metadata?.role;
 
   const { data: records, isLoading } = useQuery({
     queryKey: ['medical_records', seniorId],
@@ -87,20 +98,22 @@ const MedicalHistoryList = ({ seniorId }: MedicalHistoryListProps) => {
             <CardHeader>
               <CardTitle className="flex justify-between items-start">
                 <span>{record.diagnosis}</span>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setEditRecord(record)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setDeleteRecord(record)}>
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
-                </div>
+                {userRole !== 'senior_citizen' && (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditRecord(record)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDeleteRecord(record)}>
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                )}
               </CardTitle>
               <CardDescription>
                 {format(new Date(record.date), 'PPP')}
@@ -124,37 +137,41 @@ const MedicalHistoryList = ({ seniorId }: MedicalHistoryListProps) => {
         ))}
       </div>
 
-      <Dialog open={!!editRecord} onOpenChange={() => setEditRecord(null)}>
-        <MedicalHistoryForm
-          seniorId={seniorId}
-          recordToEdit={editRecord}
-          onSuccess={() => setEditRecord(null)}
-        />
-      </Dialog>
+      {userRole !== 'senior_citizen' && (
+        <>
+          <Dialog open={!!editRecord} onOpenChange={() => setEditRecord(null)}>
+            <MedicalHistoryForm
+              seniorId={seniorId}
+              recordToEdit={editRecord}
+              onSuccess={() => setEditRecord(null)}
+            />
+          </Dialog>
 
-      <AlertDialog
-        open={!!deleteRecord}
-        onOpenChange={() => setDeleteRecord(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              medical record.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() =>
-                deleteRecord && deleteRecordMutation(deleteRecord.id)
-              }
-              className="bg-red-600 hover:bg-red-700">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          <AlertDialog
+            open={!!deleteRecord}
+            onOpenChange={() => setDeleteRecord(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the
+                  medical record.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() =>
+                    deleteRecord && deleteRecordMutation(deleteRecord.id)
+                  }
+                  className="bg-red-600 hover:bg-red-700">
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      )}
     </>
   );
 };

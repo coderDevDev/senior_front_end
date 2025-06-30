@@ -8,8 +8,8 @@ import {
   Fingerprint,
   Loader2,
   Upload,
-  PlusCircle,
-  FileText
+  FileText,
+  PlusCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -538,12 +538,12 @@ export function ProfilePage() {
                 <FileText className="h-6 w-6 text-primary" />
                 <h2 className="text-xl font-semibold">Medical History</h2>
               </div>
-              <Button
+              {/* <Button
                 onClick={() => setIsAddMedicalRecordOpen(true)}
                 disabled={!seniorData?.id}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add Medical Record
-              </Button>
+              </Button> */}
             </div>
 
             {seniorData?.id ? (

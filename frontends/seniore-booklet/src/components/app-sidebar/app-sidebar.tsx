@@ -80,11 +80,11 @@ const data = {
       url: 'pharmacy',
       icon: PillIcon
     },
-    {
-      title: 'Medicine Management',
-      url: 'medicines',
-      icon: BriefcaseMedicalIcon
-    },
+    // {
+    //   title: 'Medicine Management',
+    //   url: 'medicines',
+    //   icon: BriefcaseMedicalIcon
+    // },
     {
       title: 'Transaction Management',
       url: 'transaction',
@@ -95,10 +95,10 @@ const data = {
       url: 'medicine-report',
       icon: FileIcon,
       items: [
-        {
-          title: 'Medicine Report',
-          url: 'medicine-report'
-        },
+        // {
+        //   title: 'Medicine Report',
+        //   url: 'medicine-report'
+        // },
         {
           title: 'Users Report',
           url: 'users-report'

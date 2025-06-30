@@ -111,10 +111,10 @@ export const CashierProfile: React.FC<userProfileProps> = ({
         </span>
         <ChevronDown className="w-4 h-4 ml-1" />
       </button>
-
+      {console.log({ user })}
       {showNavMenu && (
         <div
-          className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg py-2 z-20 border border-gray-100"
+          className="absolute left-1/2 transform -translate-x-1/2 mt-2 w-96 bg-white rounded-lg shadow-lg py-2 z-20 border border-gray-100"
           style={{ minWidth: 240 }}>
           <div className="px-4 py-2 border-b border-gray-100">
             <div className="flex items-center">
@@ -123,7 +123,7 @@ export const CashierProfile: React.FC<userProfileProps> = ({
                   src={
                     typeof user.userImg === 'string'
                       ? user.userImg
-                      : '/default-avatar.png'
+                      : `https://cdn-icons-png.freepik.com/128/12088/12088049.png`
                   }
                   alt={user?.firstName || 'Cashier'}
                   className="w-10 h-10 rounded-full"

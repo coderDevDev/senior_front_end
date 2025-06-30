@@ -40,6 +40,13 @@ import { TransactionHistoryPage } from './transaction-history/transaction-histor
 import { useTab } from '@/context/tab-context';
 import { useQuery } from '@tanstack/react-query';
 import supabase from '@/shared/supabase';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 
 const categories = [
   'All',
@@ -71,6 +78,7 @@ export function SeniorCitizenPage() {
   const [isDarkMode] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedPharmacy, setSelectedPharmacy] = useState('All Pharmacies');
 
   // Debounce search query to improve performance
   useEffect(() => {
@@ -140,6 +148,22 @@ export function SeniorCitizenPage() {
     }
   });
 
+  // Extract unique pharmacies from medicines
+  const uniquePharmacies = useMemo(() => {
+    if (!medicines) return [];
+    const seen = new Set();
+    const pharmacies: { pharmacy_id: number; name: string }[] = [];
+    medicines.forEach(med => {
+      med.pharmacies?.forEach((ph: Pharmacy) => {
+        if (ph && !seen.has(ph.pharmacy_id)) {
+          seen.add(ph.pharmacy_id);
+          pharmacies.push({ pharmacy_id: ph.pharmacy_id, name: ph.name });
+        }
+      });
+    });
+    return pharmacies;
+  }, [medicines]);
+
   // Memoize filtered medicines for better performance
   const filteredMedicines = useMemo(() => {
     if (!medicines) return [];
@@ -160,6 +184,7 @@ export function SeniorCitizenPage() {
             ?.toLowerCase()
             .includes(debouncedSearchQuery.toLowerCase());
 
+        // Always check pharmacies, even if medicine fields don't match
         const matchesPharmacy = medicine.pharmacies?.some(
           (pharmacy: Pharmacy) =>
             pharmacy.name
@@ -174,8 +199,17 @@ export function SeniorCitizenPage() {
       });
     }
 
+    // Filter by selected pharmacy
+    if (selectedPharmacy !== 'All Pharmacies') {
+      filtered = filtered.filter(medicine =>
+        medicine.pharmacies?.some(
+          (ph: Pharmacy) => ph.name === selectedPharmacy
+        )
+      );
+    }
+
     return filtered;
-  }, [medicines, debouncedSearchQuery]);
+  }, [medicines, debouncedSearchQuery, selectedPharmacy]);
 
   // Handle search input change
   const handleSearchChange = useCallback(
@@ -278,7 +312,9 @@ export function SeniorCitizenPage() {
               {filteredMedicines.map(medicine => (
                 <Card
                   key={medicine.medicineId}
-                  className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] bg-white dark:bg-slate-800/50 backdrop-blur-sm">
+                  className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] bg-white dark:bg-slate-800/50 backdrop-blur-sm"
+                  onClick={() => setExpandedMedicine(medicine.medicineId)}
+                  style={{ cursor: 'pointer' }}>
                   <CardHeader className="relative p-0">
                     <div className="aspect-square relative overflow-hidden">
                       <img
@@ -553,28 +589,49 @@ export function SeniorCitizenPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
                 className="relative mb-4">
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-6 w-6" />
-                  <Input
-                    type="text"
-                    placeholder="Search for medicines or pharmacies..."
-                    className={`pl-14 pr-14  h-16 text-lg rounded-full border-2 border-primary/20 focus:border-primary dark:bg-slate-800 dark:border-blue-900/50 dark:focus:border-blue-500`}
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                  />
-                  {searchQuery && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 h-8 w-8 rounded-full"
-                      onClick={handleClearSearch}
-                      aria-label="Clear search">
-                      <X className="h-5 w-5" />
-                    </Button>
-                  )}
-                  <Label htmlFor="search" className="sr-only">
-                    Search for medicines
-                  </Label>
+                <div className="flex flex-col sm:flex-row gap-2 items-center">
+                  <div className="relative flex-1 w-full">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-6 w-6" />
+                    <Input
+                      type="text"
+                      placeholder="Search for medicines or pharmacies here..."
+                      className={`pl-14 pr-14 h-16 text-lg rounded-full border-2 border-primary/20 focus:border-primary dark:bg-slate-800 dark:border-blue-900/50 dark:focus:border-blue-500`}
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                    />
+                    {searchQuery && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 h-8 w-8 rounded-full"
+                        onClick={handleClearSearch}
+                        aria-label="Clear search">
+                        <X className="h-5 w-5" />
+                      </Button>
+                    )}
+                    <Label htmlFor="search" className="sr-only">
+                      Search for medicines
+                    </Label>
+                  </div>
+                  <div className="w-full sm:w-[220px]">
+                    <Select
+                      value={selectedPharmacy}
+                      onValueChange={setSelectedPharmacy}>
+                      <SelectTrigger className="h-16 rounded-full border-2 border-primary/20 focus:border-primary dark:bg-slate-800 dark:border-blue-900/50 dark:focus:border-blue-500">
+                        <SelectValue placeholder="Filter by pharmacy" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="All Pharmacies">
+                          All Pharmacies
+                        </SelectItem>
+                        {uniquePharmacies.map(ph => (
+                          <SelectItem key={ph.pharmacy_id} value={ph.name}>
+                            {ph.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {/* Filter Toggle */}

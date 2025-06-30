@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
@@ -7,28 +6,9 @@ import {
   CardTitle
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import // Select,
-// SelectContent,
-// SelectItem,
-// SelectTrigger,
-// SelectValue
-'@/components/ui/select';
-import // Table,
-// TableBody,
-// TableCell,
-// TableHead,
-// TableHeader,
-// TableRow
-'@/components/ui/table';
-import {
-  // Calendar,
-  Clock,
-  MapPin,
-  Mail,
-  Phone,
-  Pill,
-  Search
-} from 'lucide-react';
+import '@/components/ui/select';
+import '@/components/ui/table';
+import { Clock, MapPin, Mail, Phone, Pill, Search } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import {
   Bar,
@@ -45,89 +25,20 @@ import supabase from '@/shared/supabase';
 import {
   Pagination,
   PaginationContent,
-  // PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious
 } from '@/components/ui/pagination';
-
-const pharmacies = [
-  {
-    id: 1,
-    name: 'PharmaCare',
-    address: '123 Health St',
-    phone: '555-0101',
-    hours: '8AM - 10PM'
-  },
-  {
-    id: 2,
-    name: 'MediLife',
-    address: '456 Wellness Ave',
-    phone: '555-0202',
-    hours: '24/7'
-  },
-  {
-    id: 3,
-    name: 'HealthRx',
-    address: '789 Care Ln',
-    phone: '555-0303',
-    hours: '7AM - 9PM'
-  },
-  {
-    id: 4,
-    name: 'WellPharm',
-    address: '321 Remedy Rd',
-    phone: '555-0404',
-    hours: '9AM - 8PM'
-  }
-];
-
-const medicines = [
-  {
-    id: 1,
-    name: 'Cardiocare',
-    type: 'Heart',
-    price: 45.99,
-    stock: { PharmaCare: 50, MediLife: 75, HealthRx: 60, WellPharm: 40 }
-  },
-  {
-    id: 2,
-    name: 'GlucoBalance',
-    type: 'Diabetes',
-    price: 32.5,
-    stock: { PharmaCare: 80, MediLife: 65, HealthRx: 70, WellPharm: 55 }
-  },
-  {
-    id: 3,
-    name: 'JointEase',
-    type: 'Pain Relief',
-    price: 28.75,
-    stock: { PharmaCare: 100, MediLife: 90, HealthRx: 85, WellPharm: 70 }
-  },
-  {
-    id: 4,
-    name: 'PressureGuard',
-    type: 'Blood Pressure',
-    price: 39.99,
-    stock: { PharmaCare: 60, MediLife: 80, HealthRx: 75, WellPharm: 50 }
-  },
-  {
-    id: 5,
-    name: 'MemoryBoost',
-    type: 'Cognitive',
-    price: 54.25,
-    stock: { PharmaCare: 40, MediLife: 55, HealthRx: 50, WellPharm: 35 }
-  }
-];
-
-const seniorData = [
-  { age: '65-70', medicinesPerMonth: 3, averageCost: 120 },
-  { age: '71-75', medicinesPerMonth: 4, averageCost: 160 },
-  { age: '76-80', medicinesPerMonth: 5, averageCost: 200 },
-  { age: '81-85', medicinesPerMonth: 6, averageCost: 240 },
-  { age: '86+', medicinesPerMonth: 7, averageCost: 280 }
-];
+import useCurrentUser from '@/modules/authentication/hooks/useCurrentUser';
+import {
+  TrendingUp,
+  TrendingDown,
+  Stethoscope,
+  Thermometer
+} from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Area, AreaChart } from 'recharts';
 
 // First, add proper types
 interface Pharmacy {
@@ -143,8 +54,8 @@ interface Pharmacy {
 
 interface DashboardData {
   pharmacies: Pharmacy[];
-  medicines: any[]; // Add proper type later
-  seniorData: any[]; // Add proper type later
+  medicines: unknown[];
+  seniorData: unknown[];
 }
 
 interface PharmacyFilters {
@@ -268,9 +179,45 @@ const useDetailedDashboardData = () => {
   });
 };
 
+// StatCard and ProgressItem components from overview-dash.tsx
+function StatCard({ icon, title, value, trend = 0 }) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        {icon}
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <p
+          className={`text-xs ${
+            trend >= 0 ? 'text-green-500' : 'text-red-500'
+          } flex items-center`}>
+          {trend >= 0 ? (
+            <TrendingUp className="h-4 w-4 mr-1" />
+          ) : (
+            <TrendingDown className="h-4 w-4 mr-1" />
+          )}
+          {Math.abs(trend)}% from last
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ProgressItem({ label, progress }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between text-sm">
+        <span>{label}</span>
+        <span>{progress}%</span>
+      </div>
+      <Progress value={progress} className="w-full" />
+    </div>
+  );
+}
+
 export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
-  const [selectedPharmacy, setSelectedPharmacy] = useState('All');
-  const [searchTerm, setSearchTerm] = useState('');
   const { data: dashboardData, isLoading, error } = useDetailedDashboardData();
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<PharmacyFilters>({
@@ -278,16 +225,8 @@ export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
     status: 'all'
   });
   const itemsPerPage = 4;
-
-  const filteredMedicines = useMemo(() => {
-    if (!dashboardData?.medicines) return [];
-
-    return dashboardData.medicines.filter(
-      medicine =>
-        medicine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        medicine.type.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [dashboardData?.medicines, searchTerm]);
+  const { user } = useCurrentUser();
+  const userRole = user?.user_metadata?.role;
 
   const filteredPharmacies = useMemo(() => {
     if (!dashboardData?.pharmacies) return [];
@@ -310,6 +249,77 @@ export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
 
   const totalPages = Math.ceil(filteredPharmacies.length / itemsPerPage);
 
+  // Dashboard stats for cashier widgets (copied from overview-dash.tsx)
+  const { data: stats } = useQuery({
+    queryKey: ['dashboard-stats-cashier'],
+    queryFn: async () => {
+      // Get total seniors count
+      const { data: seniors, error: seniorsError } = await supabase
+        .from('senior_citizens')
+        .select('*');
+      if (seniorsError) throw seniorsError;
+      // Get total medical records
+      const { data: medicalRecords, error: medicalError } = await supabase
+        .from('medical_records')
+        .select('id, date, diagnosis')
+        .order('date', { ascending: false })
+        .limit(30);
+      if (medicalError) throw medicalError;
+      // Get medicine orders
+      const { data: orders, error: ordersError } = await supabase
+        .from('orders')
+        .select(
+          `id, total_amount, created_at, order_items (quantity, medicine_id)`
+        )
+        .order('created_at', { ascending: false })
+        .limit(30);
+      if (ordersError) throw ordersError;
+      // Get medicine refill progress
+      const { data: medicines, error: medicineError } = await supabase
+        .from('medicine')
+        .select(`medicineId, name, stockQuantity, genericName, brandName`)
+        .order('stockQuantity', { ascending: true })
+        .limit(4);
+      if (medicineError) throw medicineError;
+      return {
+        totalSeniors: seniors.length,
+        recentMedicalRecords: medicalRecords,
+        recentOrders: orders,
+        medicines
+      };
+    }
+  });
+
+  // Memoized data for widgets
+  const medicineProgress = useMemo(() => {
+    if (!stats?.medicines) return [];
+    return stats.medicines.map(medicine => ({
+      label: medicine.brandName || medicine.genericName || medicine.name,
+      progress: Math.min(Math.round((medicine.stockQuantity / 100) * 100), 100)
+    }));
+  }, [stats?.medicines]);
+
+  const ordersOverTime = useMemo(() => {
+    if (!stats?.recentOrders) return [];
+    return stats.recentOrders.reduce((acc, order) => {
+      const month = new Date(order.created_at).toLocaleString('default', {
+        month: 'short'
+      });
+      const existingMonth = acc.find(m => m.month === month);
+      if (existingMonth) {
+        existingMonth.totalOrders += 1;
+        existingMonth.totalAmount += Number(order.total_amount);
+      } else {
+        acc.push({
+          month,
+          totalOrders: 1,
+          totalAmount: Number(order.total_amount)
+        });
+      }
+      return acc;
+    }, []);
+  }, [stats?.recentOrders]);
+
   if (isLoading) {
     return <div>Loading detailed statistics...</div>;
   }
@@ -325,7 +335,88 @@ export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
 
   return (
     <div className="flex flex-col gap-6 p-8">
-      {/* <h1 className="text-3xl font-bold">Detailed Medicine Dashboard</h1> */}
+      {/* Cashier dashboard widgets */}
+      {userRole === 'cashier' && (
+        <div className="flex flex-col gap-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              icon={<Pill className="h-4 w-4" />}
+              title="Total Seniors"
+              value={stats?.totalSeniors?.toString() || '0'}
+              trend={0}
+            />
+            <StatCard
+              icon={<Stethoscope className="h-4 w-4" />}
+              title="Medical Records"
+              value={stats?.recentMedicalRecords?.length?.toString() || '0'}
+              trend={0}
+            />
+            <StatCard
+              icon={<Thermometer className="h-4 w-4" />}
+              title="Recent Orders"
+              value={stats?.recentOrders?.length?.toString() || '0'}
+              trend={0}
+            />
+            <StatCard
+              icon={<Clock className="h-4 w-4" />}
+              title="Refill Reminders"
+              value={
+                stats?.medicines
+                  ?.filter(m => m.stockQuantity <= 10)
+                  .length?.toString() || '0'
+              }
+              trend={-2.5}
+            />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card className="col-span-2 md:col-span-1">
+              <CardHeader>
+                <CardTitle>Orders Over Time</CardTitle>
+                <CardDescription>
+                  Monthly order trends and totals
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={ordersOverTime}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Area
+                      type="monotone"
+                      dataKey="totalOrders"
+                      stroke="#8884d8"
+                      fill="#8884d8"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            <Card className="col-span-2 md:col-span-1">
+              <CardHeader>
+                <CardTitle>Medicine Stock Levels</CardTitle>
+                <CardDescription>
+                  Current stock levels of critical medicines
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {medicineProgress.map(item => (
+                    <ProgressItem
+                      key={item.label}
+                      label={item.label}
+                      progress={item.progress}
+                    />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {console.log({ dashboardData })}
 
       {isSeniorCitizenDataOnly ? (
         <div>
@@ -386,20 +477,6 @@ export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
                       icon={<Search className="w-4 h-4" />}
                     />
                   </div>
-                  {/* <Select
-                value={filters.status}
-                onValueChange={(value: 'all' | 'active' | 'inactive') =>
-                  setFilters(prev => ({ ...prev, status: value }))
-                }>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select> */}
                 </div>
               </CardHeader>
               <CardContent>
@@ -412,12 +489,6 @@ export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
                           <h3 className="font-semibold">{pharmacy.name}</h3>
-                          {/* <Badge
-                        variant={
-                          pharmacy.status === 'active' ? 'success' : 'secondary'
-                        }>
-                        {pharmacy.status}
-                      </Badge> */}
                         </div>
                         <p className="text-sm text-muted-foreground flex items-center mt-1">
                           <MapPin className="w-4 h-4 mr-1" /> {pharmacy.address}
