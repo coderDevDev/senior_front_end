@@ -1,5 +1,5 @@
 import UpdateSeniorForm from '@/modules/senior-citizens/update-form.page';
-import { MedicalHistoryView } from '@/modules/senior-citizens/medical-history/medical-history-list';
+import MedicalHistoryList from '@/modules/senior-citizens/medical-history/medical-history-list';
 
 // ... other imports ...
 
@@ -15,7 +15,7 @@ const routes = [
       },
       {
         path: 'senior-citizen/medical_history/:id',
-        element: <MedicalHistoryView />
+        element: <MedicalHistoryList />
       }
     ]
   }

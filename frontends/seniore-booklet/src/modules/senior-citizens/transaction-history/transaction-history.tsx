@@ -3,7 +3,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
@@ -15,8 +14,7 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
-import { MoreHorizontalIcon, SearchIcon, Eye } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
@@ -59,11 +57,8 @@ interface Order {
   order_items: OrderItem[];
 }
 
-type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
-
 const TransactionHistoryList = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const navigate = useNavigate();
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ['orders-history'],
@@ -90,19 +85,6 @@ const TransactionHistoryList = () => {
       return data;
     }
   });
-
-  const getStatusVariant = (status: string): BadgeVariant => {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return 'default';
-      case 'pending':
-        return 'secondary';
-      case 'cancelled':
-        return 'destructive';
-      default:
-        return 'outline';
-    }
-  };
 
   if (isLoading) {
     return (

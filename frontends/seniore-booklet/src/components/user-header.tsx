@@ -36,13 +36,7 @@ export function UserNav() {
     }
   };
 
-  const {
-    logout,
-    confirmLogout,
-    cancelLogout,
-    showConfirmDialog,
-    isLoggingOut
-  } = useLogout({
+  const { confirmLogout } = useLogout({
     redirectTo: '/login',
     onLogoutSuccess: () => {
       // Additional cleanup specific to your app (if needed)

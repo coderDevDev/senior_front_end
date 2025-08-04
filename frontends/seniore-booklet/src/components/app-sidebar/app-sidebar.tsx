@@ -1,17 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import {
-  BriefcaseMedicalIcon,
   FileIcon,
   LayoutDashboard,
   PillIcon,
   ScanBarcodeIcon,
-  UserIcon,
-  ChevronDown
+  UserIcon
 } from 'lucide-react';
 import * as React from 'react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { NavProjects } from '@/components/app-sidebar/nav-projects.sidebar';
 import { NavUser } from '@/components/app-sidebar/nav-user.sidebar';
@@ -162,7 +158,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavProjects />
         {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
       <SidebarFooter>

@@ -6,61 +6,14 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent
-} from '@/components/ui/chart';
+import { ChartConfig, ChartTooltip } from '@/components/ui/chart';
 import { Progress } from '@/components/ui/progress';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import {
-  Clock,
-  Pill,
-  Stethoscope,
-  Thermometer,
-  TrendingDown,
-  TrendingUp
-} from 'lucide-react';
+import { Pill, Stethoscope, TrendingDown, TrendingUp } from 'lucide-react';
 import { useState, useMemo } from 'react';
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  XAxis,
-  YAxis
-} from 'recharts';
+import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import { StatCardProps } from './types';
 import { useQuery } from '@tanstack/react-query';
 import supabase from '@/shared/supabase';
-
-const medicineAvailabilityData = [
-  { month: 'Jan', pharmacy1: 80, pharmacy2: 90, pharmacy3: 75 },
-  { month: 'Feb', pharmacy1: 85, pharmacy2: 88, pharmacy3: 78 },
-  { month: 'Mar', pharmacy1: 82, pharmacy2: 92, pharmacy3: 80 },
-  { month: 'Apr', pharmacy1: 88, pharmacy2: 95, pharmacy3: 82 },
-  { month: 'May', pharmacy1: 90, pharmacy2: 91, pharmacy3: 85 },
-  { month: 'Jun', pharmacy1: 92, pharmacy2: 93, pharmacy3: 88 }
-];
-
-const medicineTypeData = [
-  { type: 'Pain Relief', prescriptions: 1200, otc: 3500 },
-  { type: 'Heart Medication', prescriptions: 1800, otc: 800 },
-  { type: 'Diabetes Medication', prescriptions: 1600, otc: 1200 },
-  { type: 'Blood Pressure', prescriptions: 2000, otc: 1500 }
-];
 
 const pharmacyPopularityData = [
   { name: 'PharmaCare', value: 35 },
