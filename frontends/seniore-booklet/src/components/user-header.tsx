@@ -54,7 +54,7 @@ export function UserNav() {
     <div className="flex items-center gap-2">
       <div className="text-right">
         <p className="text-sm font-medium leading-none dark:text-white truncate max-w-[120px] sm:max-w-none">
-          {user?.user_metadata?.firstName || 'Senior Citizen'}
+          {(user?.user_metadata as any)?.firstName || 'Senior Citizen'}
         </p>
         <p className="text-xs text-muted-foreground hidden sm:block">
           Senior Citizen ID: {user?.id || 'SC-123456'}
@@ -72,7 +72,7 @@ export function UserNav() {
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">
-                {user?.user_metadata?.firstName} {user?.user_metadata?.lastName}
+                {(user?.user_metadata as any)?.firstName} {(user?.user_metadata as any)?.lastName}
               </p>
               <p className="text-xs leading-none text-muted-foreground">
                 {user?.email}

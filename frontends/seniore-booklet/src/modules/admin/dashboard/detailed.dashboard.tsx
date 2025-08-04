@@ -8,7 +8,7 @@ import {
 import { Input } from '@/components/ui/input';
 import '@/components/ui/select';
 import '@/components/ui/table';
-import { Clock, MapPin, Mail, Phone, Pill, Search } from 'lucide-react';
+import { Clock, MapPin, Mail, Phone, Pill } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import {
   Bar,
@@ -40,27 +40,60 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Area, AreaChart } from 'recharts';
 
-// First, add proper types
-interface Pharmacy {
-  pharmacy_id: number;
+// Updated interfaces to match actual data structure
+
+interface ProcessedPharmacy {
+  id: number;
   name: string;
   address: string;
-  phoneNumber: string;
-  operatingHours: string;
-  is24Hours: boolean;
+  phone: string;
+  hours: string;
   email: string;
   status: string;
+  transactionCount: number;
+}
+
+interface Medicine {
+  id: string;
+  name: string;
+  type: string;
+  price: number;
+  stock: number;
+  prescriptionRequired: boolean;
+}
+
+interface SeniorData {
+  age: string;
+  medicinesPerMonth: number;
+  averageCost: number;
 }
 
 interface DashboardData {
-  pharmacies: Pharmacy[];
-  medicines: unknown[];
-  seniorData: unknown[];
+  pharmacies: ProcessedPharmacy[];
+  medicines: Medicine[];
+  seniorData: SeniorData[];
 }
 
 interface PharmacyFilters {
   search: string;
   status: 'all' | 'active' | 'inactive';
+}
+
+interface AgeGroupData {
+  count: number;
+  medicalRecordsCount: number;
+}
+
+interface StatCardProps {
+  icon: React.ReactNode;
+  title: string;
+  value: string;
+  trend?: number;
+}
+
+interface ProgressItemProps {
+  label: string;
+  progress: number;
 }
 
 const useDetailedDashboardData = () => {
@@ -102,18 +135,20 @@ const useDetailedDashboardData = () => {
       );
 
       // Map pharmacy data with transaction counts
-      const pharmaciesWithTransactions = pharmacies.map(pharmacy => ({
-        id: pharmacy.pharmacy_id,
-        name: pharmacy.name || '',
-        address: pharmacy.address || '',
-        phone: pharmacy.phoneNumber || '',
-        hours: pharmacy.is24Hours ? '24/7' : pharmacy.operatingHours || '',
-        email: pharmacy.email || '',
-        status: pharmacy.status || 'inactive',
-        transactionCount:
-          transactionCounts.find(t => t.pharmacy_id === pharmacy.pharmacy_id)
-            ?.count || 0
-      }));
+      const pharmaciesWithTransactions: ProcessedPharmacy[] = pharmacies.map(
+        pharmacy => ({
+          id: pharmacy.pharmacy_id,
+          name: pharmacy.name || '',
+          address: pharmacy.address || '',
+          phone: pharmacy.phoneNumber || '',
+          hours: pharmacy.is24Hours ? '24/7' : pharmacy.operatingHours || '',
+          email: pharmacy.email || '',
+          status: pharmacy.status || 'inactive',
+          transactionCount:
+            transactionCounts.find(t => t.pharmacy_id === pharmacy.pharmacy_id)
+              ?.count || 0
+        })
+      );
 
       // Get medicines with their stock info
       const { data: medicines, error: medicineError } = await supabase.from(
@@ -139,29 +174,34 @@ const useDetailedDashboardData = () => {
       if (seniorError) throw seniorError;
 
       // Calculate age groups
-      const ageGroups = seniors.reduce((acc, senior) => {
-        const ageGroup = Math.floor(senior.age / 5) * 5;
-        const groupKey = `${ageGroup}-${ageGroup + 4}`;
+      const ageGroups: Record<string, AgeGroupData> = seniors.reduce(
+        (acc, senior) => {
+          const ageGroup = Math.floor(senior.age / 5) * 5;
+          const groupKey = `${ageGroup}-${ageGroup + 4}`;
 
-        if (!acc[groupKey]) {
-          acc[groupKey] = {
-            count: 0,
-            medicalRecordsCount: 0
-          };
-        }
+          if (!acc[groupKey]) {
+            acc[groupKey] = {
+              count: 0,
+              medicalRecordsCount: 0
+            };
+          }
 
-        acc[groupKey].count++;
-        acc[groupKey].medicalRecordsCount +=
-          senior.medical_records?.length || 0;
+          acc[groupKey].count++;
+          acc[groupKey].medicalRecordsCount +=
+            senior.medical_records?.length || 0;
 
-        return acc;
-      }, {});
+          return acc;
+        },
+        {} as Record<string, AgeGroupData>
+      );
 
-      const seniorData = Object.entries(ageGroups).map(([ageRange, data]) => ({
-        age: ageRange,
-        medicinesPerMonth: Math.round(data.medicalRecordsCount / data.count),
-        averageCost: Math.round(data.medicalRecordsCount * 40) // Assuming average cost per medicine
-      }));
+      const seniorData: SeniorData[] = Object.entries(ageGroups).map(
+        ([ageRange, data]) => ({
+          age: ageRange,
+          medicinesPerMonth: Math.round(data.medicalRecordsCount / data.count),
+          averageCost: Math.round(data.medicalRecordsCount * 40) // Assuming average cost per medicine
+        })
+      );
 
       return {
         pharmacies: pharmaciesWithTransactions,
@@ -180,7 +220,7 @@ const useDetailedDashboardData = () => {
 };
 
 // StatCard and ProgressItem components from overview-dash.tsx
-function StatCard({ icon, title, value, trend = 0 }) {
+function StatCard({ icon, title, value, trend = 0 }: StatCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -205,7 +245,7 @@ function StatCard({ icon, title, value, trend = 0 }) {
   );
 }
 
-function ProgressItem({ label, progress }) {
+function ProgressItem({ label, progress }: ProgressItemProps) {
   return (
     <div className="space-y-2">
       <div className="flex justify-between text-sm">
@@ -301,23 +341,29 @@ export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
 
   const ordersOverTime = useMemo(() => {
     if (!stats?.recentOrders) return [];
-    return stats.recentOrders.reduce((acc, order) => {
-      const month = new Date(order.created_at).toLocaleString('default', {
-        month: 'short'
-      });
-      const existingMonth = acc.find(m => m.month === month);
-      if (existingMonth) {
-        existingMonth.totalOrders += 1;
-        existingMonth.totalAmount += Number(order.total_amount);
-      } else {
-        acc.push({
-          month,
-          totalOrders: 1,
-          totalAmount: Number(order.total_amount)
+    return stats.recentOrders.reduce(
+      (
+        acc: Array<{ month: string; totalOrders: number; totalAmount: number }>,
+        order
+      ) => {
+        const month = new Date(order.created_at).toLocaleString('default', {
+          month: 'short'
         });
-      }
-      return acc;
-    }, []);
+        const existingMonth = acc.find(m => m.month === month);
+        if (existingMonth) {
+          existingMonth.totalOrders += 1;
+          existingMonth.totalAmount += Number(order.total_amount);
+        } else {
+          acc.push({
+            month,
+            totalOrders: 1,
+            totalAmount: Number(order.total_amount)
+          });
+        }
+        return acc;
+      },
+      []
+    );
   }, [stats?.recentOrders]);
 
   if (isLoading) {
@@ -336,7 +382,7 @@ export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
   return (
     <div className="flex flex-col gap-6 p-8">
       {/* Cashier dashboard widgets */}
-      {userRole === 'cashier' && (
+      {userRole === 'cashier' ? (
         <div className="flex flex-col gap-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
@@ -414,9 +460,13 @@ export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
             </Card>
           </div>
         </div>
-      )}
+      ) : null}
 
-      {console.log({ dashboardData })}
+      {/* Debug log */}
+      {(() => {
+        console.log({ dashboardData });
+        return null;
+      })()}
 
       {isSeniorCitizenDataOnly ? (
         <div>
@@ -474,7 +524,6 @@ export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
                         }))
                       }
                       className="w-full"
-                      icon={<Search className="w-4 h-4" />}
                     />
                   </div>
                 </div>
@@ -520,7 +569,6 @@ export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
                             onClick={() =>
                               setCurrentPage(p => Math.max(1, p - 1))
                             }
-                            disabled={currentPage === 1}
                           />
                         </PaginationItem>
                         {Array.from(
@@ -540,7 +588,6 @@ export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
                             onClick={() =>
                               setCurrentPage(p => Math.min(totalPages, p + 1))
                             }
-                            disabled={currentPage === totalPages}
                           />
                         </PaginationItem>
                       </PaginationContent>
@@ -595,140 +642,6 @@ export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
           </div>
         </div>
       )}
-
-      {/* <Card>
-        <CardHeader>
-          <CardTitle>Detailed Medicine Inventory</CardTitle>
-          <CardDescription>
-            Comprehensive list of available medicines and their stock levels
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center space-x-2">
-              <Search className="w-5 h-5 text-muted-foreground" />
-              <Input
-                placeholder="Search medicines..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="w-64"
-              />
-            </div>
-            <Select
-              value={selectedPharmacy}
-              onValueChange={setSelectedPharmacy}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select pharmacy" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All Pharmacies</SelectItem>
-                {dashboardData.pharmacies.map(pharmacy => (
-                  <SelectItem key={pharmacy.id} value={pharmacy.name}>
-                    {pharmacy.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Price</TableHead>
-                {selectedPharmacy === 'All' ? (
-                  dashboardData.pharmacies.map(pharmacy => (
-                    <TableHead key={pharmacy.id}>
-                      {pharmacy.name} Stock
-                    </TableHead>
-                  ))
-                ) : (
-                  <TableHead>Stock</TableHead>
-                )}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredMedicines.map(medicine => (
-                <TableRow key={medicine.id}>
-                  <TableCell>{medicine.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{medicine.type}</Badge>
-                  </TableCell>
-                  <TableCell>${medicine.price.toFixed(2)}</TableCell>
-               
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card> */}
-
-      {/* <Card>
-        <CardHeader>
-          <CardTitle>Upcoming Medicine Restocks</CardTitle>
-          <CardDescription>
-            Schedule of medicine restocks for the next 7 days
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Pharmacy</TableHead>
-                <TableHead>Medicine</TableHead>
-                <TableHead>Quantity</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell>
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    June 15, 2023
-                  </div>
-                </TableCell>
-                <TableCell>PharmaCare</TableCell>
-                <TableCell>Cardiocare</TableCell>
-                <TableCell>100</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    June 16, 2023
-                  </div>
-                </TableCell>
-                <TableCell>MediLife</TableCell>
-                <TableCell>GlucoBalance</TableCell>
-                <TableCell>150</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    June 18, 2023
-                  </div>
-                </TableCell>
-                <TableCell>HealthRx</TableCell>
-                <TableCell>JointEase</TableCell>
-                <TableCell>200</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    June 20, 2023
-                  </div>
-                </TableCell>
-                <TableCell>WellPharm</TableCell>
-                <TableCell>PressureGuard</TableCell>
-                <TableCell>120</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card> */}
     </div>
   );
 }
