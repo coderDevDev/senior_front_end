@@ -10,13 +10,6 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -26,7 +19,7 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
-import { MoreHorizontalIcon, PlusCircleIcon, SearchIcon } from 'lucide-react';
+import { PlusCircleIcon, SearchIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import useMedicines from './hooks/useMedicines';
 import MedicineContentForm from './medicine-content-form';
@@ -45,7 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Q_KEYS } from '@/shared/qkeys';
 
@@ -69,8 +62,7 @@ const MedicineList = () => {
 
   const { archiveMedicineHandler, isPending: isStatusUpdating } =
     useArchiveMedicine();
-  const { UnarchiveMedicineHandler, isPending: isUnarchiveUpdating } =
-    useUnarchiveMedicine();
+  const { UnarchiveMedicineHandler } = useUnarchiveMedicine();
 
   const handleAddMedicine = () => {
     setEditingMedicine({});
@@ -148,10 +140,10 @@ const MedicineList = () => {
 
   const pagination = useMemo(
     () => ({
-      currentPage: medicines?.data?.data?.currentPage?.page || 1,
-      totalPages: medicines?.data?.data?.totalPages || 1,
-      totalDocs: medicines?.data?.data?.totalDocs || 0,
-      limit: medicines?.data?.data?.currentPage?.limit || 20
+      currentPage: 1,
+      totalPages: 1,
+      totalDocs: medicines?.data?.data?.medicines?.length || 0,
+      limit: 20
     }),
     [medicines]
   );
@@ -223,7 +215,7 @@ const MedicineList = () => {
         </TableCell>
         <TableCell>
           <Badge variant="outline">
-            {!medicine.isActive ? 'Archived' : 'Active'}
+            {medicine.isActive ? 'Active' : 'Archived'}
           </Badge>
         </TableCell>
         <TableCell>
@@ -406,7 +398,7 @@ const MedicineList = () => {
           <div className="text-sm text-muted-foreground">
             Filter: <strong className="capitalize">{statusFilter}</strong> |
             Total Medicines:{' '}
-            <strong>{medicines?.data?.data?.totalDocs || 0}</strong>
+            <strong>{medicines?.data?.data?.medicines?.length || 0}</strong>
           </div>
         </CardFooter>
       </Card>

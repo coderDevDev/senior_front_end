@@ -199,9 +199,15 @@ export const OrderHistoryTable: React.FC = () => {
           // Check if any pharmacy in the order matches the search term
           return order.order_items.some(
             item =>
-              item.medicine?.pharmacy?.name?.toLowerCase().includes(searchLower) ||
-              item.medicine?.pharmacy?.address?.toLowerCase().includes(searchLower) ||
-              item.medicine?.pharmacy?.phoneNumber?.toLowerCase().includes(searchLower)
+              item.medicine?.pharmacy?.name
+                ?.toLowerCase()
+                .includes(searchLower) ||
+              item.medicine?.pharmacy?.address
+                ?.toLowerCase()
+                .includes(searchLower) ||
+              item.medicine?.pharmacy?.phoneNumber
+                ?.toLowerCase()
+                .includes(searchLower)
           );
         }
 
@@ -220,11 +226,19 @@ export const OrderHistoryTable: React.FC = () => {
           );
           const hasMatchingPharmacy = order.order_items.some(
             item =>
-              item.medicine?.pharmacy?.name?.toLowerCase().includes(searchLower) ||
-              item.medicine?.pharmacy?.address?.toLowerCase().includes(searchLower) ||
-              item.medicine?.pharmacy?.phoneNumber?.toLowerCase().includes(searchLower)
+              item.medicine?.pharmacy?.name
+                ?.toLowerCase()
+                .includes(searchLower) ||
+              item.medicine?.pharmacy?.address
+                ?.toLowerCase()
+                .includes(searchLower) ||
+              item.medicine?.pharmacy?.phoneNumber
+                ?.toLowerCase()
+                .includes(searchLower)
           );
-          return hasMatchingSenior || hasMatchingMedicine || hasMatchingPharmacy;
+          return (
+            hasMatchingSenior || hasMatchingMedicine || hasMatchingPharmacy
+          );
         }
       }
     });

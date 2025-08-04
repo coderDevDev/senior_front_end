@@ -29,6 +29,9 @@ export interface IMedicine {
   // Indicates if the medicine is currently available for sale.
   isActive?: boolean;
 
+  // Indicates if the medicine is archived.
+  isArchived?: boolean;
+
   // Pharmacy information
   pharmacy_id?: number;
   pharmacy?: {

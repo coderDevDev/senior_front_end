@@ -23,7 +23,7 @@ const getAllMedicines = async () => {
         )
       `
       )
-      .eq('isActive', true)
+      // .eq('isActive', true)
       .order('name', { ascending: true });
 
     if (error) {
