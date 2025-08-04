@@ -550,42 +550,48 @@ export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Senior Citizen Medicine Statistics</CardTitle>
-                <CardDescription>
-                  Average medicine consumption and costs by age group
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={dashboardData.seniorData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="age" />
-                    <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
-                    <YAxis
-                      yAxisId="right"
-                      orientation="right"
-                      stroke="#82ca9d"
-                    />
-                    <Tooltip />
-                    <Legend />
-                    <Bar
-                      yAxisId="left"
-                      dataKey="medicinesPerMonth"
-                      fill="#8884d8"
-                      name="Medicines per Month"
-                    />
-                    <Bar
-                      yAxisId="right"
-                      dataKey="averageCost"
-                      fill="#82ca9d"
-                      name="Average Cost ($)"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+            {isSeniorCitizenDataOnly && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Senior Citizen Medicine Statistics</CardTitle>
+                  <CardDescription>
+                    Average medicine consumption and costs by age group
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={dashboardData.seniorData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="age" />
+                      <YAxis
+                        yAxisId="left"
+                        orientation="left"
+                        stroke="#8884d8"
+                      />
+                      <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        stroke="#82ca9d"
+                      />
+                      <Tooltip />
+                      <Legend />
+                      <Bar
+                        yAxisId="left"
+                        dataKey="medicinesPerMonth"
+                        fill="#8884d8"
+                        name="Medicines per Month"
+                      />
+                      <Bar
+                        yAxisId="right"
+                        dataKey="averageCost"
+                        fill="#82ca9d"
+                        name="Average Cost ($)"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       )}

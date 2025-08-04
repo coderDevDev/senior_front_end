@@ -606,7 +606,7 @@ export function ProfilePage() {
                 ) : (
                   <>
                     <Fingerprint className="mr-2 h-4 w-4" />
-                    Register Fingerprintss
+                    Register Fingerprint
                   </>
                 )}
               </Button>

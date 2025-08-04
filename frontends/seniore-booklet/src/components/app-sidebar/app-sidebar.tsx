@@ -92,7 +92,7 @@ const data = {
     },
     {
       title: 'Reports',
-      url: 'medicine-report',
+      url: 'users-report',
       icon: FileIcon,
       items: [
         // {

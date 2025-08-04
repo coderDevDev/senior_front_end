@@ -96,7 +96,12 @@ const FingerprintVerification: React.FC<FingerprintVerificationProps> = ({
               Please place the senior citizen's finger on the scanner to
               identify them and continue.
             </p>
-            <Button onClick={() => setState('listening')} className="w-full">
+            <Button
+              onClick={() => {
+                window.location.href = 'myfingerprint://start';
+                setState('listening');
+              }}
+              className="w-full">
               Start Scanning
             </Button>
           </div>
