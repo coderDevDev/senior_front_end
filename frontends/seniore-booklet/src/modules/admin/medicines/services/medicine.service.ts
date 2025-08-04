@@ -65,7 +65,9 @@ const addMedicine = async (payload: MedicineFormValues) => {
   }
 };
 
-const updateMedicine = async (payload: MedicineFormValues) => {
+const updateMedicine = async (
+  payload: MedicineFormValues & { medicineId?: string }
+) => {
   try {
     // Parse the payload with the Zod schema
     const parsedData = medicineSchema.parse(payload);

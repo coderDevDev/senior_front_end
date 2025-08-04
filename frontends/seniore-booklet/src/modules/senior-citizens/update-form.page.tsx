@@ -64,9 +64,6 @@ const UpdateFormPage = ({ seniorDataForm }) => {
         healthStatus: seniorData.healthStatus || 'good',
         age: seniorData.age || 60,
         contactNumber: seniorData.contactNumber || '',
-        address: seniorData.address || '',
-        birthdate: seniorData.birthdate || null,
-        birthPlace: seniorData.birthPlace || '',
         password: '' // Not updating password in edit form
       };
     }
@@ -89,16 +86,10 @@ const UpdateFormPage = ({ seniorDataForm }) => {
         healthStatus: data.healthStatus,
         age: data.age,
         contactNumber: data.contactNumber,
-        address: data.address || null,
-        birthPlace: data.birthPlace || null,
         updatedAt: new Date().toISOString()
       };
 
       console.log('Updating senior data:', { seniorId, updateData });
-
-      if (data.birthdate) {
-        updateData['birthdate'] = data.birthdate;
-      }
 
       const { data: updatedData, error } = await supabase
         .from('senior_citizens')

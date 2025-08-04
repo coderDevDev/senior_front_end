@@ -1,9 +1,16 @@
-import { Layout, LayoutBody, LayoutHeader } from "@/components/layouts";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { UserHeader } from "@/components/user-header";
-import { ReactNode } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
-import useCurrentUser from "../authentication/hooks/useCurrentUser";
+import { Layout, LayoutBody, LayoutHeader } from '@/components/layouts';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator
+} from '@/components/ui/breadcrumb';
+import { UserHeader } from '@/components/user-header';
+import { ReactNode } from 'react';
+import { Link, useLocation, useParams } from 'react-router-dom';
+import useCurrentUser from '../authentication/hooks/useCurrentUser';
 
 const LayoutPage = ({ children }: { children: ReactNode }) => {
   const { pathname } = useLocation();
@@ -14,67 +21,65 @@ const LayoutPage = ({ children }: { children: ReactNode }) => {
     const lastRoute = pathname.split('/');
     const name = lastRoute[lastRoute.length - 1];
 
-    let finalName = "";
+    let finalName = '';
 
-    if(name === 'users') {
-      finalName = "All Users"
+    if (name === 'users') {
+      finalName = 'All Users';
     } else if (name === 'add_form') {
-       finalName = "Create User"
+      finalName = 'Create User';
     } else if (userid !== undefined) {
-      finalName = "Modify User"
-    }  else if (name === 'museums') {
-       finalName = "All Museums"
-    }  else if (name === 'add_museum') {
-      finalName = "Create Museum"
-    }  else if (name === 'pharmacy') {
-      finalName = "All Pharmacy"
-    }  else if (name === 'brand-name') {
-      finalName = "All Brands"
+      finalName = 'Modify User';
+    } else if (name === 'museums') {
+      finalName = 'All Museums';
+    } else if (name === 'add_museum') {
+      finalName = 'Create Museum';
+    } else if (name === 'pharmacy') {
+      finalName = 'All Pharmacy';
+    } else if (name === 'brand-name') {
+      finalName = 'All Brands';
     } else if (name === 'settings') {
-      finalName = "All Brands"
+      finalName = 'All Brands';
     } else if (name === 'generic-name') {
-      finalName = "All Generics"
+      finalName = 'All Generics';
     } else if (name === 'overview') {
-      finalName = "Insights, Metrics, and Summary"
+      finalName = 'Insights, Metrics, and Summary';
     } else if (name === 'medicines') {
-      finalName = "All Medicines"
+      finalName = 'All Medicines';
     } else if (name === 'transaction-history') {
-      finalName = "View usage, transaction history, and details."
+      finalName = 'View usage, transaction history, and details.';
     } else if (name === 'my-profile') {
-      finalName = "See your details, and able to edit your information."
+      finalName = 'See your details, and able to edit your information.';
     }
 
-
     return finalName;
-  }
+  };
 
   const secondaryCrumb = (): string => {
     const lastRoute = pathname.split('/');
     const name = lastRoute[2];
 
-    let finalName = "";
+    let finalName = '';
 
-    if(name === 'users') {
-      finalName = "Users"
+    if (name === 'users') {
+      finalName = 'Users';
     } else if (name === 'museums') {
-       finalName = "Museums"
+      finalName = 'Museums';
     } else if (name === 'pharmacy') {
-      finalName = "Pharmacy"
+      finalName = 'Pharmacy';
     } else if (name === 'settings') {
-      finalName = "Settings"
-    }  else if (name === 'overview') {
-      finalName = "Overview"
+      finalName = 'Settings';
+    } else if (name === 'overview') {
+      finalName = 'Overview';
     } else if (name === 'medicines') {
-      finalName = "Medicine"
+      finalName = 'Medicine';
     } else if (name === 'transaction-history') {
-      finalName = "Transaction"
+      finalName = 'Transaction';
     } else if (name === 'my-profile') {
-      finalName = "My Profile"
-    } 
+      finalName = 'My Profile';
+    }
 
     return finalName;
-  }
-
+  };
 
   return (
     <Layout>
@@ -85,48 +90,55 @@ const LayoutPage = ({ children }: { children: ReactNode }) => {
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
-                    <Link to={"/senior-app"} className="font-light text-[#927B6B]">
-                      {pathname === '/senior-app' ? 'Senior App' : "Dashboard"}
+                    <Link
+                      to={'/senior-app'}
+                      className="font-light text-[#927B6B]">
+                      {pathname === '/senior-app' ? 'Senior App' : 'Dashboard'}
                     </Link>
                     {/* <Link href="#">Dashboard</Link> */}
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-              {pathname !== '/senior-app' ? (
-                <>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink asChild>
-                      <Link to={"../users"} className="font-light  text-[#927B6B]">
-                        {secondaryCrumb()}
-                      </Link>
-                      {/* <Link href="#">Users</Link> */}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage className="text-[#492309]">
-                      {identifierCrumb()}
-                    </BreadcrumbPage>
-                  </BreadcrumbItem>
-                
-                </>
-              ) : <>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                  {user?.user_metadata?.firstName || "Senior Citizen"}
-                  </BreadcrumbItem>
-              
-              </>}
+                {pathname !== '/senior-app' ? (
+                  <>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbLink asChild>
+                        <Link
+                          to={'../users'}
+                          className="font-light  text-[#927B6B]">
+                          {secondaryCrumb()}
+                        </Link>
+                        {/* <Link href="#">Users</Link> */}
+                      </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage className="text-[#492309]">
+                        {identifierCrumb()}
+                      </BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </>
+                ) : (
+                  <>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      {(user?.user_metadata as any)?.firstName ||
+                        'Senior Citizen'}
+                    </BreadcrumbItem>
+                  </>
+                )}
               </BreadcrumbList>
             </Breadcrumb>
           }
         />
       </LayoutHeader>
-      <LayoutBody className="pb-16 md:pb-0"> {/* Add padding bottom for mobile */}
+      <LayoutBody className="pb-16 md:pb-0">
+        {' '}
+        {/* Add padding bottom for mobile */}
         {children}
       </LayoutBody>
     </Layout>
-  )
-}
+  );
+};
 
-export default LayoutPage
+export default LayoutPage;

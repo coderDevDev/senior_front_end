@@ -202,10 +202,10 @@ const UsersList = () => {
 
   const pagination = useMemo(
     () => ({
-      currentPage: usersData?.data?.currentPage?.page || 1,
-      totalPages: usersData?.data?.totalPages || 1,
-      totalDocs: usersData?.data?.totalDocs || 0,
-      limit: usersData?.data?.currentPage?.limit || 20
+      currentPage: 1,
+      totalPages: 1,
+      totalDocs: usersData?.data?.length || 0,
+      limit: 20
     }),
     [usersData]
   );

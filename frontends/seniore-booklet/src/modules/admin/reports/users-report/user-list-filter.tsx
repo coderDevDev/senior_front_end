@@ -61,7 +61,7 @@ const UserFilterList = () => {
 
   const memoUsers = useMemo(() => {
     // Make sure we're accessing the correct data structure
-    const allUsers = users?.data?.students || [];
+    const allUsers = users?.data || [];
 
     console.log({ users });
     if (!searchTerm) return allUsers;
@@ -71,10 +71,10 @@ const UserFilterList = () => {
 
   const pagination = useMemo(
     () => ({
-      currentPage: users?.data?.currentPage?.page || 1,
-      totalPages: users?.data?.totalPages || 1,
-      totalDocs: users?.data?.totalDocs || 0,
-      limit: users?.data?.currentPage?.limit || 20
+      currentPage: 1,
+      totalPages: 1,
+      totalDocs: users?.data?.length || 0,
+      limit: 20
     }),
     [users]
   );
@@ -118,7 +118,7 @@ const UserFilterList = () => {
             alt={`${user.firstName}'s avatar`}
             className="aspect-square rounded-md object-cover"
             height="64"
-            src={user.userImg || '/default-avatar.png'}
+            src={(user as any).userImg || '/default-avatar.png'}
             width="64"
           />
         </TableCell>

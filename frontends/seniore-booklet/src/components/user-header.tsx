@@ -72,7 +72,8 @@ export function UserNav() {
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">
-                {(user?.user_metadata as any)?.firstName} {(user?.user_metadata as any)?.lastName}
+                {(user?.user_metadata as any)?.firstName}{' '}
+                {(user?.user_metadata as any)?.lastName}
               </p>
               <p className="text-xs leading-none text-muted-foreground">
                 {user?.email}

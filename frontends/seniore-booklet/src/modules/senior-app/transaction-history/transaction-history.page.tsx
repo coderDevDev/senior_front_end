@@ -29,7 +29,7 @@ export function TransactionHistoryPage() {
       const { data: seniorData, error: seniorError } = await supabase
         .from('senior_citizens')
         .select('*')
-        .eq('user_uid', user?.id)
+        .eq('user_uid', user?.id || '')
         .single();
 
       console.log({ seniorData, user });

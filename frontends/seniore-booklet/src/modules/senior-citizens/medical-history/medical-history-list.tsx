@@ -33,10 +33,13 @@ interface MedicalHistoryListProps {
 
 type MedicalRecord = {
   id: string;
+  senior_id: string;
   diagnosis: string;
   date: string;
   treatment: string;
   notes?: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 const MedicalHistoryList = ({ seniorId }: MedicalHistoryListProps) => {
@@ -142,7 +145,7 @@ const MedicalHistoryList = ({ seniorId }: MedicalHistoryListProps) => {
           <Dialog open={!!editRecord} onOpenChange={() => setEditRecord(null)}>
             <MedicalHistoryForm
               seniorId={seniorId}
-              recordToEdit={editRecord}
+              recordToEdit={editRecord || undefined}
               onSuccess={() => setEditRecord(null)}
             />
           </Dialog>

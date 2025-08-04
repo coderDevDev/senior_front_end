@@ -37,6 +37,11 @@ interface OrderItem {
   unit_price: number;
   total_price: number;
   discount_applied: boolean;
+  medicine?: {
+    name: string;
+    genericName?: string;
+    brandName?: string;
+  };
 }
 
 interface Order {
@@ -151,7 +156,7 @@ const TransactionHistoryList = () => {
                     <TableCell>
                       <Badge
                         variant={
-                          order.status === 'completed' ? 'success' : 'secondary'
+                          order.status === 'completed' ? 'default' : 'secondary'
                         }>
                         {order.status}
                       </Badge>

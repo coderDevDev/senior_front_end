@@ -111,7 +111,11 @@ export const CashierProfile: React.FC<userProfileProps> = ({
         </span>
         <ChevronDown className="w-4 h-4 ml-1" />
       </button>
-      {console.log({ user })}
+      {/* Debug log */}
+      {(() => {
+        console.log({ user });
+        return null;
+      })()}
       {showNavMenu && (
         <div
           className="absolute left-1/2 transform -translate-x-1/2 mt-2 w-96 bg-white rounded-lg shadow-lg py-2 z-20 border border-gray-100"

@@ -131,8 +131,8 @@ const MedicineList = () => {
 
     return medicinesList.filter((medicine: IMedicine) => {
       if (statusFilter !== 'all') {
-        if (statusFilter === 'active' && medicine.isArchived) return false;
-        if (statusFilter === 'archived' && !medicine.isArchived) return false;
+        if (statusFilter === 'active' && !medicine.isActive) return false;
+        if (statusFilter === 'archived' && medicine.isActive) return false;
       }
 
       if (!searchTerm) return true;
@@ -163,9 +163,8 @@ const MedicineList = () => {
         (medicine: IMedicine) =>
           !medicine.status || medicine.status === 'active'
       ).length,
-      archived: medicineList.filter(
-        (medicine: IMedicine) => medicine.isArchived
-      ).length
+      archived: medicineList.filter((medicine: IMedicine) => !medicine.isActive)
+        .length
     };
   }, [medicines]);
 
@@ -225,7 +224,7 @@ const MedicineList = () => {
         </TableCell>
         <TableCell>
           <Badge variant="outline">
-            {medicine.isArchived ? 'Archived' : 'Active'}
+            {!medicine.isActive ? 'Archived' : 'Active'}
           </Badge>
         </TableCell>
         <TableCell>

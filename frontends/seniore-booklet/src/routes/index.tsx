@@ -1,11 +1,12 @@
 import UpdateSeniorForm from '@/modules/senior-citizens/update-form.page';
+import { MedicalHistoryView } from '@/modules/senior-citizens/medical-history/medical-history-list';
 
 // ... other imports ...
 
 const routes = [
   {
     path: '/dashboard-app',
-    element: <DashboardLayout />,
+    element: <div>Dashboard Layout Placeholder</div>,
     children: [
       // ... other routes ...
       {
@@ -14,7 +15,7 @@ const routes = [
       },
       {
         path: 'senior-citizen/medical_history/:id',
-        element: <MedicalHistoryView /> // You'll need to create this component too
+        element: <MedicalHistoryView />
       }
     ]
   }

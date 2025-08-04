@@ -25,19 +25,20 @@ export async function getSdk(): Promise<IFingerprintSdk> {
       script.src = '/fingerprint_reader/api/sdk_mod.js';
       script.async = true;
       script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Failed to load fingerprint SDK'));
+      script.onerror = () =>
+        reject(new Error('Failed to load fingerprint SDK'));
       document.head.appendChild(script);
     });
 
     // The original code pattern
     // In the working app: import { FingerprintSdk } from './fingerprint_reader/api/sdk_mod'
-    
+
     // First check if it's directly available
     if (typeof window.FingerprintSdk === 'function') {
-      sdkInstance = new window.FingerprintSdk();
+      sdkInstance = window.FingerprintSdk();
       return sdkInstance;
     }
-    
+
     // If not, try to access as a module
     throw new Error('Please copy the SDK file to the public directory first');
   } catch (error) {

@@ -78,7 +78,7 @@ const SeniorCitizenForm = ({
               />
               {form.formState.errors.email && (
                 <span className="text-red-500 text-sm">
-                  {form.formState.errors.email.message}
+                  {form.formState.errors.email.message || 'Invalid email'}
                 </span>
               )}
             </div>
@@ -94,7 +94,8 @@ const SeniorCitizenForm = ({
                 />
                 {form.formState.errors.password && (
                   <span className="text-red-500 text-sm">
-                    {form.formState.errors.password.message}
+                    {form.formState.errors.password.message ||
+                      'Invalid password'}
                   </span>
                 )}
               </div>

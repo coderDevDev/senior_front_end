@@ -23,9 +23,9 @@ export default function ProfilePage() {
                   Full Name
                 </label>
                 <p className="font-medium">
-                  {user?.user_metadata?.firstName}{' '}
-                  {user?.user_metadata?.middleName}{' '}
-                  {user?.user_metadata?.lastName}
+                  {(user?.user_metadata as any)?.firstName}{' '}
+                  {(user?.user_metadata as any)?.middleName}{' '}
+                  {(user?.user_metadata as any)?.lastName}
                 </p>
               </div>
               <div>
@@ -34,14 +34,16 @@ export default function ProfilePage() {
               </div>
               <div>
                 <label className="text-sm text-muted-foreground">Age</label>
-                <p className="font-medium">{user?.user_metadata?.age}</p>
+                <p className="font-medium">
+                  {(user?.user_metadata as any)?.age}
+                </p>
               </div>
               <div>
                 <label className="text-sm text-muted-foreground">
                   Contact Number
                 </label>
                 <p className="font-medium">
-                  {user?.user_metadata?.contactNumber}
+                  {(user?.user_metadata as any)?.contactNumber}
                 </p>
               </div>
               <div>
@@ -49,12 +51,14 @@ export default function ProfilePage() {
                   Health Status
                 </label>
                 <p className="font-medium">
-                  {user?.user_metadata?.healthStatus}
+                  {(user?.user_metadata as any)?.healthStatus}
                 </p>
               </div>
               <div>
                 <label className="text-sm text-muted-foreground">Address</label>
-                <p className="font-medium">{user?.user_metadata?.address}</p>
+                <p className="font-medium">
+                  {(user?.user_metadata as any)?.address}
+                </p>
               </div>
             </div>
           </Card>

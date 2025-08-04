@@ -1,19 +1,21 @@
-import { Button } from "@/components/ui/button"
-import { UserCheck } from "lucide-react"
+import { Button } from '@/components/ui/button';
+import { UserCheck } from 'lucide-react';
 
 export const PersonalInfoStep = ({ onNext }: { onNext: () => void }) => {
   return (
     <div className="space-y-6">
       <div className="text-center">
         <h3 className="text-lg font-medium">Personal Information Verified</h3>
-        <p className="text-sm text-gray-600">Please review your information before proceeding</p>
+        <p className="text-sm text-gray-600">
+          Please review your information before proceeding
+        </p>
       </div>
-      <Button className="w-full" onClick={onNext} variant="ringHover">
+      <Button className="w-full" onClick={onNext} variant="default">
         Complete Registration
       </Button>
     </div>
-  )
-}
+  );
+};
 
 export const SuccessStep = ({ onComplete }: { onComplete: () => void }) => {
   return (
@@ -25,9 +27,7 @@ export const SuccessStep = ({ onComplete }: { onComplete: () => void }) => {
         <h3 className="text-2xl font-bold">Registration Complete!</h3>
         <p className="text-gray-600">You can now log in to your account</p>
       </div>
-      <Button onClick={onComplete}>
-        Go to Login
-      </Button>
+      <Button onClick={onComplete}>Go to Login</Button>
     </div>
-  )
-}
+  );
+};

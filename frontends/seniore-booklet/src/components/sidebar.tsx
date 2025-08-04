@@ -129,7 +129,7 @@ const Sidebar = ({ className, isCollapsed, setIsCollapsed }: SidebarProps) => {
 
             {/* Toggle Button in mobile */}
             <Button
-              variant="gooeyRight"
+              variant="outline"
               size="icon"
               className="md:hidden"
               aria-label="Toggle Navigation"

@@ -1,23 +1,35 @@
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { useBag } from "@/context/bag-context"
-import { cn } from "@/lib/utils"
-import IMedicine from "@/modules/admin/medicines/medicine.interface"
-import useCurrentUser from "@/modules/authentication/hooks/useCurrentUser"
-import supabase from "@/shared/supabase"
-import { MinusCircle, PlusCircle, ShoppingBag } from "lucide-react"
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { toast } from "sonner"
-import useMedicines from "../hooks/useMedicines"
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
+import { useBag } from '@/context/bag-context';
+import { cn } from '@/lib/utils';
+import IMedicine from '@/modules/admin/medicines/medicine.interface';
+import useCurrentUser from '@/modules/authentication/hooks/useCurrentUser';
+import supabase from '@/shared/supabase';
+import { MinusCircle, PlusCircle, ShoppingBag } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import useMedicines from '../hooks/useMedicines';
 
 interface ReceiptData {
   userId: string;
   seniorCitizenId: string;
   fullName: string;
-  items: { id: string; name: string; stockQuantity: number; unitPrice: number; total: number }[];
+  items: {
+    id: string;
+    name: string;
+    stockQuantity: number;
+    unitPrice: number;
+    total: number;
+  }[];
   subtotal: number;
   discountAmount: number;
   finalTotal: number;
@@ -38,23 +50,21 @@ export function CheckoutPage() {
   const { data: medicinesData } = useMedicines();
   const navigate = useNavigate();
 
-
-
   const { user } = useCurrentUser();
 
   // Assume userId is available from auth (replace with your auth logic)
-  const userId = user?.user_metadata.id; // TODO: Get from Supabase auth (e.g., supabase.auth.getUser())
+  const userId = (user?.user_metadata as any)?.id; // TODO: Get from Supabase auth (e.g., supabase.auth.getUser())
 
   const medicines = medicinesData?.data?.data?.medicines || [];
 
   const itemsWithDetails = items.map((item: BagItem) => ({
     ...item,
-    details: medicines.find((m: IMedicine) => m.medicineId === item.id),
+    details: medicines.find((m: IMedicine) => m.medicineId === item.id)
   }));
 
   const handleProceedToPayment = async () => {
     setIsLoading(true);
-    toast.loading("Preparing receipt...", { id: "receipt-prepare" });
+    toast.loading('Preparing receipt...', { id: 'receipt-prepare' });
 
     try {
       // Fetch user name
@@ -65,7 +75,7 @@ export function CheckoutPage() {
         .single();
 
       if (userError || !userData) {
-        throw new Error("User not found");
+        throw new Error('User not found');
       }
 
       // Fetch senior citizen ID
@@ -76,7 +86,7 @@ export function CheckoutPage() {
         .single();
 
       if (seniorError || !seniorData) {
-        throw new Error("Senior citizen record not found");
+        throw new Error('Senior citizen record not found');
       }
 
       // Calculate discount
@@ -94,21 +104,24 @@ export function CheckoutPage() {
           name: item.name,
           stockQuantity: item.stockQuantity,
           unitPrice: item.unitPrice,
-          total: item.unitPrice * item.stockQuantity,
+          total: item.unitPrice * item.stockQuantity
         })),
         subtotal: totalAmount,
         discountAmount,
         finalTotal,
         date: new Date().toLocaleDateString(),
-        referenceNumber: `TRX-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+        referenceNumber: `TRX-${Math.random()
+          .toString(36)
+          .substr(2, 9)
+          .toUpperCase()}`
       });
 
-      toast.dismiss("receipt-prepare");
+      toast.dismiss('receipt-prepare');
       setIsModalOpen(true);
     } catch (error) {
       console.error('Error preparing receipt:', error);
-      toast.dismiss("receipt-prepare");
-      toast.error((error as Error).message || "Failed to prepare receipt");
+      toast.dismiss('receipt-prepare');
+      toast.error((error as Error).message || 'Failed to prepare receipt');
     } finally {
       setIsLoading(false);
     }
@@ -124,24 +137,26 @@ export function CheckoutPage() {
         medicines: receiptData.items,
         total_amount: receiptData.finalTotal,
         discount_amount: receiptData.discountAmount,
-        status: "Completed",
+        status: 'Completed',
         reference_number: receiptData.referenceNumber,
-        pharmacy: "Sample Pharmacy",
+        pharmacy: 'Sample Pharmacy'
       };
 
-      const { error } = await supabase.from('transactions').insert([transaction]);
+      const { error } = await supabase
+        .from('transactions')
+        .insert([transaction]);
 
       if (error) {
         throw new Error(`Transaction error: ${error.message}`);
       }
 
-      toast.success("Purchase completed!");
+      toast.success('Purchase completed!');
       clearBag();
       setIsModalOpen(false);
-      navigate("/transactions");
+      navigate('/transactions');
     } catch (error) {
       console.error('Transaction error:', error);
-      toast.error((error as Error).message || "Failed to complete purchase");
+      toast.error((error as Error).message || 'Failed to complete purchase');
     }
   };
 
@@ -167,7 +182,7 @@ export function CheckoutPage() {
             <div className="flex gap-4">
               <div className="flex-shrink-0">
                 <img
-                  src={item.details?.medicineImageUrl || "/placeholder.svg"}
+                  src={item.details?.medicineImageUrl || '/placeholder.svg'}
                   alt={item.name}
                   className="w-24 h-24 object-cover rounded-lg"
                 />
@@ -181,7 +196,9 @@ export function CheckoutPage() {
                       {item.details?.description}
                     </p>
                   </div>
-                  <p className="font-semibold">₱{(item.unitPrice * item.stockQuantity).toFixed(2)}</p>
+                  <p className="font-semibold">
+                    ₱{(item.unitPrice * item.stockQuantity).toFixed(2)}
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -190,17 +207,17 @@ export function CheckoutPage() {
                       size="icon"
                       variant="ghost"
                       className="rounded-full"
-                      onClick={() => handlestockQuantityChange(item.id, -1)}
-                    >
+                      onClick={() => handlestockQuantityChange(item.id, -1)}>
                       <MinusCircle className="h-5 w-5" />
                     </Button>
-                    <span className="w-8 text-center">{item.stockQuantity}</span>
+                    <span className="w-8 text-center">
+                      {item.stockQuantity}
+                    </span>
                     <Button
                       size="icon"
                       variant="ghost"
                       className="rounded-full"
-                      onClick={() => handlestockQuantityChange(item.id, 1)}
-                    >
+                      onClick={() => handlestockQuantityChange(item.id, 1)}>
                       <PlusCircle className="h-5 w-5" />
                     </Button>
                   </div>
@@ -209,12 +226,11 @@ export function CheckoutPage() {
                     <Badge
                       variant="outline"
                       className={cn(
-                        "px-3 py-1",
-                        item.details?.stockQuantity as number < 10
-                          ? "bg-orange-50 text-orange-700 border-orange-200"
-                          : "bg-green-50 text-green-700 border-green-200"
-                      )}
-                    >
+                        'px-3 py-1',
+                        (item.details?.stockQuantity as number) < 10
+                          ? 'bg-orange-50 text-orange-700 border-orange-200'
+                          : 'bg-green-50 text-green-700 border-green-200'
+                      )}>
                       {item.details.stockQuantity} in stock
                     </Badge>
                   )}
@@ -242,10 +258,9 @@ export function CheckoutPage() {
             className="w-full"
             size="lg"
             onClick={handleProceedToPayment}
-            disabled={isLoading}
-          >
+            disabled={isLoading}>
             <ShoppingBag className="mr-2 h-5 w-5" />
-            {isLoading ? "Preparing..." : "Proceed to Payment"}
+            {isLoading ? 'Preparing...' : 'Proceed to Payment'}
           </Button>
         </CardContent>
       </Card>
@@ -258,37 +273,47 @@ export function CheckoutPage() {
           {receiptData && (
             <div className="space-y-4">
               <div>
-                <p><strong>Senior Citizen:</strong> {receiptData.fullName}</p>
-                <p><strong>Date:</strong> {receiptData.date}</p>
-                <p><strong>Reference Number:</strong> {receiptData.referenceNumber}</p>
+                <p>
+                  <strong>Senior Citizen:</strong> {receiptData.fullName}
+                </p>
+                <p>
+                  <strong>Date:</strong> {receiptData.date}
+                </p>
+                <p>
+                  <strong>Reference Number:</strong>{' '}
+                  {receiptData.referenceNumber}
+                </p>
               </div>
               <div>
                 <h4 className="font-semibold">Items Purchased:</h4>
                 <ul className="list-disc pl-5">
-                  {receiptData.items.map((item) => (
+                  {receiptData.items.map(item => (
                     <li key={item.id}>
-                      {item.name} (x{item.stockQuantity}) - ₱{item.total.toFixed(2)}
+                      {item.name} (x{item.stockQuantity}) - ₱
+                      {item.total.toFixed(2)}
                     </li>
                   ))}
                 </ul>
               </div>
               <div>
-                <p><strong>Subtotal:</strong> ₱{receiptData.subtotal.toFixed(2)}</p>
-                <p><strong>Senior Discount (20%):</strong> ₱{receiptData.discountAmount.toFixed(2)}</p>
-                <p><strong>Total:</strong> ₱{receiptData.finalTotal.toFixed(2)}</p>
+                <p>
+                  <strong>Subtotal:</strong> ₱{receiptData.subtotal.toFixed(2)}
+                </p>
+                <p>
+                  <strong>Senior Discount (20%):</strong> ₱
+                  {receiptData.discountAmount.toFixed(2)}
+                </p>
+                <p>
+                  <strong>Total:</strong> ₱{receiptData.finalTotal.toFixed(2)}
+                </p>
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsModalOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleConfirmPurchase}>
-              Confirm Purchase
-            </Button>
+            <Button onClick={handleConfirmPurchase}>Confirm Purchase</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
