@@ -47,6 +47,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { Q_KEYS } from '@/shared/qkeys';
 
 const MedicineList = () => {
   const queryClient = useQueryClient();
@@ -109,7 +110,7 @@ const MedicineList = () => {
         await UnarchiveMedicineHandler(medicineToUpdate);
       }
 
-      await queryClient.invalidateQueries({ queryKey: ['medicines'] });
+      await queryClient.invalidateQueries({ queryKey: [Q_KEYS.MEDICINE] });
       await refetch();
 
       setStatusDialogOpen(false);
@@ -159,10 +160,8 @@ const MedicineList = () => {
     const medicineList = medicines?.data?.data?.medicines || [];
     return {
       all: medicineList.length,
-      active: medicineList.filter(
-        (medicine: IMedicine) =>
-          !medicine.status || medicine.status === 'active'
-      ).length,
+      active: medicineList.filter((medicine: IMedicine) => medicine.isActive)
+        .length,
       archived: medicineList.filter((medicine: IMedicine) => !medicine.isActive)
         .length
     };
@@ -251,7 +250,7 @@ const MedicineList = () => {
               <span className="sr-only">Edit</span>
             </Button>
 
-            {!medicine.isArchived ? (
+            {medicine.isActive ? (
               <Button
                 variant="outline"
                 size="sm"

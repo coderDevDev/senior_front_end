@@ -6,15 +6,75 @@ import { MedicineFormValues, medicineSchema } from '../medicine-content-form';
 import { supabase } from '@/shared/supabase';
 const getAllMedicines = async () => {
   try {
-    return await axios({
-      method: 'GET',
-      url: `${import.meta.env.VITE_SERVER_URL}/api/v1/medicine/`
-    });
-  } catch (err) {
-    if (err instanceof axios.AxiosError) {
-      console.log(err.response?.data.error);
-      throw new Error(`${err.response?.data.error}`);
+    // Use Supabase to get medicines with pharmacy information
+    const { data: medicinesData, error } = await supabase
+      .from('medicine')
+      .select(
+        `
+        *,
+        pharmacy:pharmacy_id (
+          pharmacy_id,
+          name,
+          address,
+          phoneNumber,
+          operatingHours,
+          is24Hours,
+          status
+        )
+      `
+      )
+      .eq('isActive', true)
+      .order('name', { ascending: true });
+
+    if (error) {
+      throw new Error(error.message);
     }
+
+    // Transform the data to include pharmacy information
+    const medicinesWithPharmacies = await Promise.all(
+      (medicinesData || []).map(async medicine => {
+        let pharmacy = medicine.pharmacy;
+
+        // If pharmacy data is not available from join, fetch it separately
+        if (!pharmacy && medicine.pharmacy_id) {
+          try {
+            const { data: pharmacyData, error: pharmacyError } = await supabase
+              .from('pharmacy')
+              .select(
+                'pharmacy_id, name, address, phoneNumber, operatingHours, is24Hours, status'
+              )
+              .eq('pharmacy_id', medicine.pharmacy_id)
+              .single();
+
+            if (!pharmacyError && pharmacyData) {
+              pharmacy = pharmacyData;
+            }
+          } catch (err) {
+            console.warn(
+              `Failed to fetch pharmacy data for ID ${medicine.pharmacy_id}:`,
+              err
+            );
+          }
+        }
+
+        return {
+          ...medicine,
+          pharmacy: pharmacy || null,
+          pharmacies: pharmacy ? [pharmacy] : []
+        };
+      })
+    );
+
+    return {
+      data: {
+        data: {
+          medicines: medicinesWithPharmacies
+        }
+      }
+    };
+  } catch (err) {
+    console.error('Error fetching medicines:', err);
+    throw err;
   }
 };
 

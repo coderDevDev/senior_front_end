@@ -38,6 +38,16 @@ interface OrderItem {
     name: string;
     genericName: string;
     brandName: string;
+    pharmacy_id?: number;
+    pharmacy?: {
+      pharmacy_id: number;
+      name: string;
+      address: string;
+      phoneNumber: string;
+      operatingHours: string;
+      is24Hours: boolean;
+      status: string;
+    };
   };
 }
 
@@ -63,7 +73,7 @@ interface Order {
 
 // Add variant type for Badge
 type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
-type FilterType = 'all' | 'medicine' | 'senior';
+type FilterType = 'all' | 'medicine' | 'senior' | 'pharmacy';
 
 export const OrderHistoryTable: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -78,7 +88,7 @@ export const OrderHistoryTable: React.FC = () => {
     queryKey: ['orders-history'],
     queryFn: async () => {
       try {
-        // Get orders with senior info and order items in a single query
+        // Get orders with senior info, order items, and pharmacy info in a single query
         const { data: ordersData, error: ordersError } = await supabase
           .from('orders')
           .select(
@@ -97,7 +107,17 @@ export const OrderHistoryTable: React.FC = () => {
               medicine!medicine_id (
                 name,
                 genericName,
-                brandName
+                brandName,
+                pharmacy_id,
+                pharmacy:pharmacy_id (
+                  pharmacy_id,
+                  name,
+                  address,
+                  phoneNumber,
+                  operatingHours,
+                  is24Hours,
+                  status
+                )
               )
             )
           `
@@ -175,9 +195,19 @@ export const OrderHistoryTable: React.FC = () => {
           return seniorName.includes(searchLower);
         }
 
+        case 'pharmacy': {
+          // Check if any pharmacy in the order matches the search term
+          return order.order_items.some(
+            item =>
+              item.medicine?.pharmacy?.name?.toLowerCase().includes(searchLower) ||
+              item.medicine?.pharmacy?.address?.toLowerCase().includes(searchLower) ||
+              item.medicine?.pharmacy?.phoneNumber?.toLowerCase().includes(searchLower)
+          );
+        }
+
         case 'all':
         default: {
-          // Check both medicine and senior citizen
+          // Check medicine, senior citizen, and pharmacy
           const seniorName = `${order.senior_citizens?.firstName || ''} ${
             order.senior_citizens?.lastName || ''
           }`.toLowerCase();
@@ -188,7 +218,13 @@ export const OrderHistoryTable: React.FC = () => {
               item.medicine?.genericName?.toLowerCase().includes(searchLower) ||
               item.medicine?.brandName?.toLowerCase().includes(searchLower)
           );
-          return hasMatchingSenior || hasMatchingMedicine;
+          const hasMatchingPharmacy = order.order_items.some(
+            item =>
+              item.medicine?.pharmacy?.name?.toLowerCase().includes(searchLower) ||
+              item.medicine?.pharmacy?.address?.toLowerCase().includes(searchLower) ||
+              item.medicine?.pharmacy?.phoneNumber?.toLowerCase().includes(searchLower)
+          );
+          return hasMatchingSenior || hasMatchingMedicine || hasMatchingPharmacy;
         }
       }
     });
@@ -278,10 +314,12 @@ export const OrderHistoryTable: React.FC = () => {
           <Input
             placeholder={`Search by ${
               filterType === 'all'
-                ? 'medicine or senior citizen'
+                ? 'medicine, senior citizen, or pharmacy'
                 : filterType === 'medicine'
                 ? 'medicine name'
-                : 'senior citizen name'
+                : filterType === 'senior'
+                ? 'senior citizen name'
+                : 'pharmacy name, address, or phone number'
             }...`}
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
@@ -309,6 +347,7 @@ export const OrderHistoryTable: React.FC = () => {
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="medicine">By Medicine</SelectItem>
               <SelectItem value="senior">By Senior Citizen</SelectItem>
+              <SelectItem value="pharmacy">By Pharmacy</SelectItem>
             </SelectContent>
           </Select>
 
@@ -350,6 +389,7 @@ export const OrderHistoryTable: React.FC = () => {
                 <TableHead>Order ID</TableHead>
                 <TableHead>Senior Citizen</TableHead>
                 <TableHead>Items</TableHead>
+                <TableHead>Pharmacy</TableHead>
                 <TableHead>Total Amount</TableHead>
                 <TableHead>Discount</TableHead>
                 <TableHead>Status</TableHead>
@@ -383,6 +423,36 @@ export const OrderHistoryTable: React.FC = () => {
                         ))
                       ) : (
                         <span className="text-gray-500 text-sm">No items</span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      {order.order_items?.length > 0 ? (
+                        order.order_items.map(item => (
+                          <div key={item.id} className="text-sm">
+                            {item.medicine?.pharmacy?.name ? (
+                              <div>
+                                <span className="font-medium">
+                                  {item.medicine.pharmacy.name}
+                                </span>
+                                {item.medicine.pharmacy.address && (
+                                  <div className="text-xs text-gray-500">
+                                    {item.medicine.pharmacy.address}
+                                  </div>
+                                )}
+                              </div>
+                            ) : item.medicine?.pharmacy_id ? (
+                              <span className="text-gray-500">
+                                Pharmacy #{item.medicine.pharmacy_id}
+                              </span>
+                            ) : (
+                              <span className="text-gray-500">N/A</span>
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        <span className="text-gray-500 text-sm">N/A</span>
                       )}
                     </div>
                   </TableCell>
@@ -477,6 +547,7 @@ export const OrderHistoryTable: React.FC = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Item</TableHead>
+                        <TableHead>Pharmacy</TableHead>
                         <TableHead>Quantity</TableHead>
                         <TableHead>Unit Price</TableHead>
                         <TableHead>Total</TableHead>
@@ -498,6 +569,26 @@ export const OrderHistoryTable: React.FC = () => {
                                   </p>
                                 </div>
                               </TableCell>
+                              <TableCell>
+                                {item.medicine?.pharmacy?.name ? (
+                                  <div>
+                                    <span className="font-medium">
+                                      {item.medicine.pharmacy.name}
+                                    </span>
+                                    {item.medicine.pharmacy.address && (
+                                      <div className="text-xs text-gray-500">
+                                        {item.medicine.pharmacy.address}
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : item.medicine?.pharmacy_id ? (
+                                  <span className="text-gray-500">
+                                    Pharmacy #{item.medicine.pharmacy_id}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-500">N/A</span>
+                                )}
+                              </TableCell>
                               <TableCell>{item.quantity}</TableCell>
                               <TableCell>
                                 {formatCurrency(item.unit_price)}
@@ -509,7 +600,7 @@ export const OrderHistoryTable: React.FC = () => {
                           ))}
                           <TableRow>
                             <TableCell
-                              colSpan={3}
+                              colSpan={4}
                               className="text-right font-medium">
                               Subtotal
                             </TableCell>
@@ -519,7 +610,7 @@ export const OrderHistoryTable: React.FC = () => {
                           </TableRow>
                           <TableRow>
                             <TableCell
-                              colSpan={3}
+                              colSpan={4}
                               className="text-right font-medium">
                               Discount
                             </TableCell>
@@ -532,7 +623,7 @@ export const OrderHistoryTable: React.FC = () => {
                           </TableRow>
                           <TableRow>
                             <TableCell
-                              colSpan={3}
+                              colSpan={4}
                               className="text-right font-bold">
                               Total
                             </TableCell>
@@ -544,7 +635,7 @@ export const OrderHistoryTable: React.FC = () => {
                       ) : (
                         <TableRow>
                           <TableCell
-                            colSpan={4}
+                            colSpan={5}
                             className="text-center text-gray-500">
                             No items found
                           </TableCell>
