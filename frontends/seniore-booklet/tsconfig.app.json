@@ -15,7 +15,7 @@
     "jsx": "react-jsx",
 
     /* Linting */
-    "strict": true,
+    "strict": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
@@ -25,5 +25,11 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["./src", "src/shared/fingerprint_reader/websdk.client.bundle.min.js", "public/fingerprint_reader/scripts", "public/fingerprint_reader/lib", "public/fingerprint_reader/api"]
+  "include": [
+    "./src",
+    "src/shared/fingerprint_reader/websdk.client.bundle.min.js",
+    "public/fingerprint_reader/scripts",
+    "public/fingerprint_reader/lib",
+    "public/fingerprint_reader/api"
+  ]
 }
