@@ -14,6 +14,8 @@ import { StatCardProps } from './types';
 import { useQuery } from '@tanstack/react-query';
 import supabase from '@/shared/supabase';
 
+import DetailedDashboard from './detailed.dashboard';
+
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 const useDashboardStats = () => {
@@ -123,10 +125,10 @@ export default function BookletDashboard() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 bg-background">
-      <div className="flex justify-between items-center">
+      {/* <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Senior Citizen Health Dashboard</h1>
-      </div>
-
+      </div> */}
+      {/* 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           icon={<Pill className="h-4 w-4" />}
@@ -140,12 +142,12 @@ export default function BookletDashboard() {
           value={stats?.recentMedicalRecords.length.toString() || '0'}
           trend={0}
         />
-      </div>
+      </div> */}
 
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* <div className="grid gap-4 md:grid-cols-3">
         <Card className="col-span-3 md:col-span-1">
           <CardHeader>
-            <CardTitle>Pharmacy Distribution</CardTitle>
+            <CardTitle>Pharmacy Distributionss</CardTitle>
             <CardDescription>
               Equal distribution across pharmacies
             </CardDescription>
@@ -187,7 +189,8 @@ export default function BookletDashboard() {
             </div>
           </CardFooter>
         </Card>
-      </div>
+      </div> */}
+      <DetailedDashboard />
     </div>
   );
 }

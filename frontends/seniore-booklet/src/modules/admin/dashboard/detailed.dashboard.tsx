@@ -382,7 +382,7 @@ export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
   return (
     <div className="flex flex-col gap-6 p-8">
       {/* Cashier dashboard widgets */}
-      {userRole === 'cashier' ? (
+      {userRole === 'admin' ? (
         <div className="flex flex-col gap-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
