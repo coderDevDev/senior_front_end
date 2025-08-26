@@ -71,16 +71,16 @@ const data = {
     //   ],
     // },
 
+    // {
+    //   title: 'Pharmacy Management',
+    //   url: 'pharmacy',
+    //   icon: PillIcon
+    // },
     {
-      title: 'Pharmacy Management',
-      url: 'pharmacy',
+      title: 'Medicine Management',
+      url: 'medicines',
       icon: PillIcon
     },
-    // {
-    //   title: 'Medicine Management',
-    //   url: 'medicines',
-    //   icon: BriefcaseMedicalIcon
-    // },
     {
       title: 'Transaction Management',
       url: 'transaction',
@@ -99,10 +99,10 @@ const data = {
           title: 'Users Report',
           url: 'users-report'
         },
-        {
-          title: 'Pharmacy Report',
-          url: 'pharmacy-report'
-        },
+        // {
+        //   title: 'Pharmacy Report',
+        //   url: 'pharmacy-report'
+        // },
         {
           title: 'Transaction Report',
           url: 'transaction-report'

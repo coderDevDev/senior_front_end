@@ -368,7 +368,7 @@ export function SeniorCitizenPage() {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6 pt-0">
+                  {/* <CardContent className="p-6 pt-0">
                     <div className="space-y-4">
                       <div>
                         <h3 className="text-sm font-medium text-muted-foreground mb-2">
@@ -419,7 +419,7 @@ export function SeniorCitizenPage() {
                         </div>
                       </div>
                     </div>
-                  </CardContent>
+                  </CardContent> */}
                 </Card>
               ))}
             </div>
@@ -594,7 +594,7 @@ export function SeniorCitizenPage() {
                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-6 w-6" />
                     <Input
                       type="text"
-                      placeholder="Search for medicines or pharmacies here..."
+                      placeholder="Search for medicines"
                       className={`pl-14 pr-14 h-16 text-lg rounded-full border-2 border-primary/20 focus:border-primary dark:bg-slate-800 dark:border-blue-900/50 dark:focus:border-blue-500`}
                       value={searchQuery}
                       onChange={handleSearchChange}
@@ -613,7 +613,7 @@ export function SeniorCitizenPage() {
                       Search for medicines
                     </Label>
                   </div>
-                  <div className="w-full sm:w-[220px]">
+                  {/* <div className="w-full sm:w-[220px]">
                     <Select
                       value={selectedPharmacy}
                       onValueChange={setSelectedPharmacy}>
@@ -631,7 +631,7 @@ export function SeniorCitizenPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Filter Toggle */}

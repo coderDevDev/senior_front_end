@@ -328,7 +328,7 @@ export const OrderHistoryTable: React.FC = () => {
           <Input
             placeholder={`Search by ${
               filterType === 'all'
-                ? 'medicine, senior citizen, or pharmacy'
+                ? 'medicine, senior citizen'
                 : filterType === 'medicine'
                 ? 'medicine name'
                 : filterType === 'senior'
@@ -361,7 +361,7 @@ export const OrderHistoryTable: React.FC = () => {
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="medicine">By Medicine</SelectItem>
               <SelectItem value="senior">By Senior Citizen</SelectItem>
-              <SelectItem value="pharmacy">By Pharmacy</SelectItem>
+              {/* <SelectItem value="pharmacy">By Pharmacy</SelectItem> */}
             </SelectContent>
           </Select>
 
@@ -403,7 +403,7 @@ export const OrderHistoryTable: React.FC = () => {
                 <TableHead>Order ID</TableHead>
                 <TableHead>Senior Citizen</TableHead>
                 <TableHead>Items</TableHead>
-                <TableHead>Pharmacy</TableHead>
+                {/* <TableHead>Pharmacy</TableHead> */}
                 <TableHead>Total Amount</TableHead>
                 <TableHead>Discount</TableHead>
                 <TableHead>Status</TableHead>
@@ -440,7 +440,7 @@ export const OrderHistoryTable: React.FC = () => {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  {/* <TableCell>
                     <div className="space-y-1">
                       {order.order_items?.length > 0 ? (
                         order.order_items.map(item => (
@@ -469,7 +469,7 @@ export const OrderHistoryTable: React.FC = () => {
                         <span className="text-gray-500 text-sm">N/A</span>
                       )}
                     </div>
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell className="font-medium">
                     {formatCurrency(order.total_amount)}
                   </TableCell>

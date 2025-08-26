@@ -93,7 +93,7 @@ export const MedicineCard: React.FC<MedicineCardProps> = ({
             <p className="text-gray-600 text-sm mb-2">{medicine.description}</p>
 
             {/* Pharmacy Information */}
-            <div className="flex items-start text-sm text-gray-500 mb-2">
+            {/* <div className="flex items-start text-sm text-gray-500 mb-2">
               <Store className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
               {medicine.pharmacy ? (
                 <div className="flex-1">
@@ -153,7 +153,7 @@ export const MedicineCard: React.FC<MedicineCardProps> = ({
                   Available at all partner pharmacies
                 </span>
               )}
-            </div>
+            </div> */}
 
             <div className="flex flex-wrap gap-2">
               <span

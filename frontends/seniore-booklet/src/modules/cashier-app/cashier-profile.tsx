@@ -188,7 +188,7 @@ export const CashierProfile: React.FC<userProfileProps> = ({
             </div>
           </div>
 
-          <button
+          {/* <button
             className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
             onClick={() => {
               setActiveTab('medicines');
@@ -196,7 +196,7 @@ export const CashierProfile: React.FC<userProfileProps> = ({
             }}>
             <Pill className="w-4 h-4 mr-3 text-gray-400" />
             Medicine Management
-          </button>
+          </button> */}
 
           <button
             className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"

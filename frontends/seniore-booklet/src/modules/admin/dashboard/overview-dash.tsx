@@ -6,45 +6,15 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
-import { ChartConfig, ChartTooltip } from '@/components/ui/chart';
-import { Progress } from '@/components/ui/progress';
+import { ChartTooltip } from '@/components/ui/chart';
 import { Pill, Stethoscope, TrendingDown, TrendingUp } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import { StatCardProps } from './types';
 import { useQuery } from '@tanstack/react-query';
 import supabase from '@/shared/supabase';
 
-const pharmacyPopularityData = [
-  { name: 'PharmaCare', value: 35 },
-  { name: 'MediLife', value: 30 },
-  { name: 'HealthRx', value: 25 },
-  { name: 'WellPharm', value: 10 }
-];
-
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
-
-const medicineChartConfig = {
-  pharmacy1: {
-    label: 'PharmaCare',
-    color: 'hsl(var(--primary))'
-  },
-  pharmacy2: {
-    label: 'MediLife',
-    color: 'hsl(var(--secondary))'
-  },
-  pharmacy3: {
-    label: 'HealthRx',
-    color: 'hsl(var(--accent))'
-  }
-} satisfies ChartConfig;
-
-const orderChartConfig = {
-  totalOrders: {
-    label: 'Total Orders',
-    color: 'hsl(var(--primary))'
-  }
-} satisfies ChartConfig;
 
 const useDashboardStats = () => {
   return useQuery({
@@ -94,8 +64,7 @@ const useDashboardStats = () => {
       ).select(`
           pharmacy_id,
           name,
-          status,
-          transactions (count)
+          status
         `);
 
       if (pharmacyError) throw pharmacyError;
@@ -133,70 +102,20 @@ const useDashboardStats = () => {
 };
 
 export default function BookletDashboard() {
-  const [timeRange, setTimeRange] = useState('6m');
   const { data: stats, isLoading } = useDashboardStats();
 
   console.log({ stats });
-  const medicineAvailabilityData = useMemo(() => {
-    if (!stats?.recentOrders) return [];
-
-    // Group orders by month and calculate totals
-    return stats.recentOrders.reduce((acc, order) => {
-      const month = new Date(order.created_at).toLocaleString('default', {
-        month: 'short'
-      });
-      const existingMonth = acc.find(m => m.month === month);
-
-      if (existingMonth) {
-        existingMonth.totalOrders += 1;
-        existingMonth.totalAmount += Number(order.total_amount);
-      } else {
-        acc.push({
-          month,
-          totalOrders: 1,
-          totalAmount: Number(order.total_amount)
-        });
-      }
-
-      return acc;
-    }, [] as Array<{ month: string; totalOrders: number; totalAmount: number }>);
-  }, [stats?.recentOrders]);
-
-  const healthStatusData = useMemo(() => {
-    if (!stats?.healthStatusDistribution) return [];
-
-    return Object.entries(stats.healthStatusDistribution).map(
-      ([status, count]) => ({
-        name: status,
-        value: count
-      })
-    );
-  }, [stats?.healthStatusDistribution]);
 
   const pharmacyData = useMemo(() => {
     if (!stats?.pharmacies) return [];
 
-    const totalTransactions = stats.pharmacies.reduce(
-      (acc, pharmacy) => acc + (pharmacy.transactions?.length || 0),
-      0
-    );
+    const totalPharmacies = stats.pharmacies.length;
 
     return stats.pharmacies.map(pharmacy => ({
       name: pharmacy.name,
-      value: Math.round(
-        ((pharmacy.transactions?.length || 0) / totalTransactions) * 100
-      )
+      value: Math.round((1 / totalPharmacies) * 100)
     }));
   }, [stats?.pharmacies]);
-
-  const medicineProgress = useMemo(() => {
-    if (!stats?.medicines) return [];
-
-    return stats.medicines.map(medicine => ({
-      label: medicine.brandName || medicine.genericName || medicine.name,
-      progress: Math.min(Math.round((medicine.stockQuantity / 100) * 100), 100) // Assuming 100 is max stock
-    }));
-  }, [stats?.medicines]);
 
   if (isLoading) {
     return <div>Loading dashboard data...</div>;
@@ -206,17 +125,6 @@ export default function BookletDashboard() {
     <div className="flex flex-1 flex-col gap-4 p-4 bg-background">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Senior Citizen Health Dashboard</h1>
-        {/* <Select defaultValue={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select time range" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1m">Last Month</SelectItem>
-            <SelectItem value="3m">Last 3 Months</SelectItem>
-            <SelectItem value="6m">Last 6 Months</SelectItem>
-            <SelectItem value="1y">Last Year</SelectItem>
-          </SelectContent>
-        </Select> */}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -232,156 +140,15 @@ export default function BookletDashboard() {
           value={stats?.recentMedicalRecords.length.toString() || '0'}
           trend={0}
         />
-        {/* <StatCard
-          icon={<Thermometer className="h-4 w-4" />}
-          title="Recent Orders"
-          value={stats?.recentOrders.length.toString() || '0'}
-          trend={0}
-        /> */}
-
-        {/* CONNECT REFILL REMINDERS TO DATABASE */}
-        {/* <StatCard
-          icon={<Clock className="h-4 w-4" />}
-          title="Refill Reminders"
-          value="68"
-          trend={-2.5}
-        /> */}
-      </div>
-
-      {/* <div className="grid gap-4 md:grid-cols-2">
-        <Card className="col-span-2 md:col-span-1">
-          <CardHeader>
-            <CardTitle>Orders Over Time</CardTitle>
-            <CardDescription>Monthly order trends and totals</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer
-              config={orderChartConfig}
-              className="h-[300px] w-full px-4">
-              <AreaChart data={medicineAvailabilityData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Area
-                  type="monotone"
-                  dataKey="totalOrders"
-                  stroke="hsl(var(--primary))"
-                  fill="hsl(var(--primary)/.2)"
-                />
-              </AreaChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="col-span-2 md:col-span-1">
-          <CardHeader>
-            <CardTitle>Health Status Distribution</CardTitle>
-            <CardDescription>
-              Current health status of senior citizens
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={healthStatusData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value">
-                  {healthStatusData.map((_, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <ChartTooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div> */}
-
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* <Card className="col-span-2 md:col-span-1">
-          <CardHeader>
-            <CardTitle>Medicine Availability</CardTitle>
-            <CardDescription>
-              Percentage of medicines available at each pharmacy
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={medicineChartConfig} className="h-[300px]">
-              <AreaChart
-                data={medicineAvailabilityData}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Area
-                  type="monotone"
-                  dataKey="pharmacy1"
-                  stackId="1"
-                  stroke={medicineChartConfig.pharmacy1.color}
-                  fill={`${medicineChartConfig.pharmacy1.color}/.2`}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="pharmacy2"
-                  stackId="1"
-                  stroke={medicineChartConfig.pharmacy2.color}
-                  fill={`${medicineChartConfig.pharmacy2.color}/.2`}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="pharmacy3"
-                  stackId="1"
-                  stroke={medicineChartConfig.pharmacy3.color}
-                  fill={`${medicineChartConfig.pharmacy3.color}/.2`}
-                />
-              </AreaChart>
-            </ChartContainer>
-          </CardContent>
-        </Card> */}
-
-        {/* <Card className="col-span-2 md:col-span-1">
-          <CardHeader>
-            <CardTitle>Medicine Types</CardTitle>
-            <CardDescription>
-              Prescription vs Over-the-Counter Medicines
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={medicineTypeData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="type" />
-                <YAxis />
-                <ChartTooltip />
-                <Bar
-                  dataKey="prescriptions"
-                  fill="#8884d8"
-                  name="Prescription"
-                />
-                <Bar dataKey="otc" fill="#82ca9d" name="Over-the-Counter" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card> */}
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="col-span-3 md:col-span-1">
           <CardHeader>
-            <CardTitle>Pharmacy Popularity</CardTitle>
-            <CardDescription>Based on transaction count</CardDescription>
+            <CardTitle>Pharmacy Distribution</CardTitle>
+            <CardDescription>
+              Equal distribution across pharmacies
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -420,26 +187,6 @@ export default function BookletDashboard() {
             </div>
           </CardFooter>
         </Card>
-
-        {/* <Card className="col-span-3 md:col-span-2">
-          <CardHeader>
-            <CardTitle>Medicine Stock Levels</CardTitle>
-            <CardDescription>
-              Current stock levels of critical medicines
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {medicineProgress.map(item => (
-                <ProgressItem
-                  key={item.label}
-                  label={item.label}
-                  progress={item.progress}
-                />
-              ))}
-            </div>
-          </CardContent>
-        </Card> */}
       </div>
     </div>
   );
@@ -467,23 +214,5 @@ function StatCard({ icon, title, value, trend = 0 }: StatCardProps) {
         </p>
       </CardContent>
     </Card>
-  );
-}
-
-function ProgressItem({
-  label,
-  progress
-}: {
-  label: string;
-  progress: number;
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="flex justify-between text-sm">
-        <span>{label}</span>
-        <span>{progress}%</span>
-      </div>
-      <Progress value={progress} className="w-full" />
-    </div>
   );
 }

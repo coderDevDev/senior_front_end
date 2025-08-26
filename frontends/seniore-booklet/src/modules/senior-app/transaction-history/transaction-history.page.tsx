@@ -248,11 +248,11 @@ export function TransactionHistoryPage() {
                                   </p>
                                 </div>
                               </div>
-                              <p className="mt-4 text-muted-foreground">
+                              {/* <p className="mt-4 text-muted-foreground">
                                 Pharmacy:{' '}
                                 {order.order_items?.[0]?.medicine?.pharmacy
                                   ?.name || 'Unknown Pharmacy'}
-                              </p>
+                              </p> */}
                             </motion.div>
                           )}
                         </div>
