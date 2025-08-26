@@ -505,7 +505,8 @@ export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
         </div>
       ) : (
         <div>
-          <div className="grid gap-6 md:grid-cols-2">
+          {/* here */}
+          {/* <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle>Pharmacy Directory</CardTitle>
@@ -639,7 +640,7 @@ export default function DetailedDashboard({ isSeniorCitizenDataOnly = false }) {
                 </CardContent>
               </Card>
             )}
-          </div>
+          </div> */}
         </div>
       )}
     </div>
